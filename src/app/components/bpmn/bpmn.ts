@@ -14,6 +14,7 @@ import {
 } from 'bpmn-js-properties-panel';
 import * as camundaModdleDescriptor from 'camunda-bpmn-moddle/resources/camunda.json';
 import Canvas from 'diagram-js/lib/core/Canvas';
+import EventBus from 'diagram-js/lib/core/EventBus';
 
 @Component({
   selector: 'app-bpmm',
@@ -40,7 +41,6 @@ export class Bpmn implements AfterViewInit {
       </bpmndi:BPMNDiagram>
     </bpmn:definitions>`;
 
-
   ngAfterViewInit(): void {
     this.bpmnModeler = new BpmnModeler({
       container: this.canvasRef.nativeElement,
@@ -59,6 +59,16 @@ export class Bpmn implements AfterViewInit {
     this.bpmnModeler.importXML(this.defaultDiagram).then(() => {
       const canvas = this.bpmnModeler.get<Canvas>('canvas');
       canvas.zoom('fit-viewport');
+
+      const eventBus = this.bpmnModeler.get<EventBus>('eventBus');
+      eventBus.on('element.dblclick', (event: any) => {
+        const element = event.element;
+        console.log('Double clicked on element:', element);
+
+        if (element.type === 'bpmn:Task') {
+          console.log('action logged!');
+        }
+      });
     });
   }
 
