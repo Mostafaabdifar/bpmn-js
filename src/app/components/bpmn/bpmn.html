@@ -1,0 +1,29 @@
+<div class="flex" style="display: flex">
+  <!-- Canvas -->
+  <div
+    #canvas
+    class="bpmn-canvas"
+    style="width: 70%; height: 90vh; border: 1px solid #ccc"
+  ></div>
+
+  <!-- Properties Panel -->
+  <div
+    #properties
+    class="bpmn-properties"
+    style="width: 30%; height: 90vh; border-left: 1px solid #ccc"
+  ></div>
+</div>
+
+<button
+  (click)="saveDiagram()"
+  style="
+    background-color: yellowgreen;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    margin: 16px auto;
+    cursor: pointer;
+  "
+>
+  Save Diagram
+</button>
