@@ -1,21 +1,22 @@
+import { HttpClient } from '@angular/common/http';
 import {
   AfterViewInit,
   Component,
   ElementRef,
-  OnInit,
+  inject,
   ViewChild,
 } from '@angular/core';
-import BpmnModeler from 'camunda-bpmn-js/lib/base/Modeler';
-import 'camunda-bpmn-js/dist/assets/camunda-platform-modeler.css';
-import { HttpClient } from '@angular/common/http';
+import { MatDialog } from '@angular/material/dialog';
 import {
   BpmnPropertiesPanelModule,
   BpmnPropertiesProviderModule,
 } from 'bpmn-js-properties-panel';
+import 'camunda-bpmn-js/dist/assets/camunda-platform-modeler.css';
+import BpmnModeler from 'camunda-bpmn-js/lib/base/Modeler';
 import * as camundaModdleDescriptor from 'camunda-bpmn-moddle/resources/camunda.json';
 import Canvas from 'diagram-js/lib/core/Canvas';
 import EventBus from 'diagram-js/lib/core/EventBus';
-
+import { Dialog } from '../dialog/dialog';
 @Component({
   selector: 'app-bpmm',
   providers: [HttpClient],
@@ -26,6 +27,7 @@ export class Bpmn implements AfterViewInit {
   @ViewChild('canvas', { static: true }) private canvasRef!: ElementRef;
   @ViewChild('properties', { static: true }) private propertiesRef!: ElementRef;
   private bpmnModeler!: BpmnModeler;
+  readonly dialog = inject(MatDialog);
 
   defaultDiagram = `<?xml version="1.0" encoding="UTF-8"?>
     <bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -63,12 +65,30 @@ export class Bpmn implements AfterViewInit {
       const eventBus = this.bpmnModeler.get<EventBus>('eventBus');
       eventBus.on('element.dblclick', (event: any) => {
         const element = event.element;
-        console.log('Double clicked on element:', element);
-
+        console.log(element);
         if (element.type === 'bpmn:Task') {
-          console.log('action logged!');
+          this.openDialog(element.type);
+        }
+        if (element.type === 'bpmn:SequenceFlow') {
+          this.openDialog(element.type);
+          console.log(
+            `source: ${
+              element.businessObject.sourceRef.id.split('_')[0]
+            } -> target: ${element.businessObject.targetRef.id.split('_')[0]}`
+          );
         }
       });
+    });
+  }
+
+  openDialog(type: string): void {
+    let typeAction = type.split('bpmn:').join('');
+    const dialogRef = this.dialog.open(Dialog, {
+      data: { typeAction },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      console.log('The dialog was closed');
     });
   }
 
