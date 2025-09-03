@@ -8,6 +8,7 @@ export default class CustomContextPad {
   private elementFactory: any;
   private translate: any;
   private autoPlace: any;
+  private originalGetContextPadEntries: any;
 
   constructor(
     bpmnFactory: any,
@@ -25,6 +26,18 @@ export default class CustomContextPad {
 
     if (config.autoPlace !== false) {
       this.autoPlace = injector.get('autoPlace', false);
+    }
+
+    // گرفتن provider اصلی
+    const defaultProvider = injector.get('contextPadProvider', false);
+    if (defaultProvider) {
+      this.originalGetContextPadEntries =
+        defaultProvider.getContextPadEntries.bind(defaultProvider);
+
+      // override کردن contextPad اصلی
+      defaultProvider.getContextPadEntries = () => {
+        return {}; // یعنی چیزی از خودش نشون نده
+      };
     }
 
     contextPad.registerProvider(this);
@@ -65,35 +78,39 @@ export default class CustomContextPad {
       };
     }
 
-    return {
-      'append.low-task': {
-        group: 'model',
-        className: 'bpmn-icon-task red',
-        title: translate('Append Task with low suitability score'),
-        action: {
-          click: appendServiceTask(SUITABILITY_SCORE_LOW),
-          dragstart: appendServiceTaskStart(SUITABILITY_SCORE_LOW),
-        },
-      },
-      'append.average-task': {
-        group: 'model',
-        className: 'bpmn-icon-task yellow',
-        title: translate('Append Task with average suitability score'),
-        action: {
-          click: appendServiceTask(SUITABILITY_SCORE_AVERAGE),
-          dragstart: appendServiceTaskStart(SUITABILITY_SCORE_AVERAGE),
-        },
-      },
-      'append.high-task': {
-        group: 'model',
-        className: 'bpmn-icon-task green',
-        title: translate('Append Task with high suitability score'),
-        action: {
-          click: appendServiceTask(SUITABILITY_SCORE_HIGH),
-          dragstart: appendServiceTaskStart(SUITABILITY_SCORE_HIGH),
-        },
+    // ۱) گرفتن entryهای پیش‌فرض
+    let entries = this.originalGetContextPadEntries
+      ? this.originalGetContextPadEntries(element)
+      : {};
+
+    const blocked = [
+      'append.data-object-reference',
+      'append.data-store-reference',
+      'append.participant-expanded',
+      'append.group',
+    ];
+
+    entries = Object.fromEntries(
+      Object.entries(entries).filter(([key]) => !blocked.includes(key))
+    );
+    entries['append.append-task'].title = 'فراخوانی API';
+    entries['append.end-event'].title = 'مسیر نهایی';
+    entries['append.gateway'].title = 'مسیر شرطی';
+    entries['delete'].title = 'حذف';
+    entries['append.intermediate-event'].title = 'مسیر خطا';
+    entries['append.intermediate-event'].className =
+      'entry bpmn-icon-intermediate-event-none red';
+    entries['append.high-task'] = {
+      group: 'model',
+      className: 'bpmn-icon-task green',
+      title: translate('مسیر نگاشت'),
+      action: {
+        click: appendServiceTask(SUITABILITY_SCORE_HIGH),
+        dragstart: appendServiceTaskStart(SUITABILITY_SCORE_HIGH),
       },
     };
+
+    return entries;
   }
 }
 
@@ -106,3 +123,22 @@ export default class CustomContextPad {
   'injector',
   'translate',
 ];
+
+// 'append.low-task': {
+//   group: 'model',
+//   className: 'bpmn-icon-task red',
+//   title: translate('Append Task with low suitability score'),
+//   action: {
+//     click: appendServiceTask(SUITABILITY_SCORE_LOW),
+//     dragstart: appendServiceTaskStart(SUITABILITY_SCORE_LOW),
+//   },
+// },
+// 'append.average-task': {
+//   group: 'model',
+//   className: 'bpmn-icon-task yellow',
+//   title: translate('Append Task with average suitability score'),
+//   action: {
+//     click: appendServiceTask(SUITABILITY_SCORE_AVERAGE),
+//     dragstart: appendServiceTaskStart(SUITABILITY_SCORE_AVERAGE),
+//   },
+// },
