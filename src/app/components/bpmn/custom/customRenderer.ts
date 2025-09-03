@@ -32,20 +32,15 @@ export default class CustomRenderer extends BaseRenderer {
     const suitabilityScore = this.getSuitabilityScore(element);
     if (!isNil(suitabilityScore)) {
       const color = this.getColor(suitabilityScore);
+      svgAttr(shape, { fill: color });
 
-      const rect = drawRect(
-        parentNode,
-        50,
-        20,
-        TASK_BORDER_RADIUS,
-        color
-      );
-      svgAttr(rect, { transform: 'translate(-20, -10)' });
+      // const rect = drawRect(parentNode, 50, 20, TASK_BORDER_RADIUS, color);
+      // svgAttr(rect, { transform: 'translate(-20, -10)' });
 
-      const text = svgCreate('text');
-      svgAttr(text, { fill: '#fff', transform: 'translate(-15, 5)' });
-      svgClasses(text).add('djs-label');
-      svgAppend(parentNode, text);
+      // const text = svgCreate('text');
+      // svgAttr(text, { fill: '#fff', transform: 'translate(-15, 5)' });
+      // svgClasses(text).add('djs-label');
+      // svgAppend(parentNode, text);
     }
 
     return shape;
@@ -79,7 +74,7 @@ function drawRect(
   width: number,
   height: number,
   borderRadius: number,
-  color: string,
+  color: string
 ) {
   const rect = svgCreate('rect');
   svgAttr(rect, {

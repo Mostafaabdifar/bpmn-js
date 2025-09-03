@@ -1,0 +1,13 @@
+::ng-deep {
+  .red::before {
+    color: #ff4d4f;
+  }
+
+  .yellow:before {
+    color: #faad14;
+  }
+
+  .green:before {
+    color: #52c41a;
+  }
+}

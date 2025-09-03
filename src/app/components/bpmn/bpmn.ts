@@ -24,6 +24,7 @@ import CustomRenderer from './custom/customRenderer';
   selector: 'app-bpmm',
   providers: [HttpClient],
   templateUrl: './bpmn.html',
+  styleUrl: './bpmn.scss',
   standalone: true,
 })
 export class Bpmn implements AfterViewInit {
