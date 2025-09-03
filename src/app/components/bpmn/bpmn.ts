@@ -17,6 +17,9 @@ import * as camundaModdleDescriptor from 'camunda-bpmn-moddle/resources/camunda.
 import Canvas from 'diagram-js/lib/core/Canvas';
 import EventBus from 'diagram-js/lib/core/EventBus';
 import { Dialog } from '../dialog/dialog';
+import CustomContextPad from './custom/customContextPad';
+import CustomPalette from './custom/customPalette';
+import CustomRenderer from './custom/customRenderer';
 @Component({
   selector: 'app-bpmm',
   providers: [HttpClient],
@@ -52,6 +55,12 @@ export class Bpmn implements AfterViewInit {
       additionalModules: [
         BpmnPropertiesPanelModule,
         BpmnPropertiesProviderModule,
+        {
+          __init__: ['customContextPad', 'customPalette', 'customRenderer'],
+          customContextPad: ['type', CustomContextPad],
+          customPalette: ['type', CustomPalette],
+          customRenderer: ['type', CustomRenderer],
+        },
       ],
       moddleExtensions: {
         camunda: camundaModdleDescriptor,
@@ -61,8 +70,8 @@ export class Bpmn implements AfterViewInit {
     this.bpmnModeler.importXML(this.defaultDiagram).then(() => {
       const canvas = this.bpmnModeler.get<Canvas>('canvas');
       canvas.zoom('fit-viewport');
-
       const eventBus = this.bpmnModeler.get<EventBus>('eventBus');
+
       eventBus.on('element.dblclick', (event: any) => {
         const element = event.element;
         console.log(element);
@@ -74,11 +83,11 @@ export class Bpmn implements AfterViewInit {
           console.log(
             `source: ${
               element.businessObject.sourceRef.id.split('_')[0]
-            } - ${this.convertToOrdinary(
+            } - ${this.convertToOrdinaryText(
               element.businessObject.sourceRef.$type
             )} -> target: ${
               element.businessObject.targetRef.id.split('_')[0]
-            } - ${this.convertToOrdinary(
+            } - ${this.convertToOrdinaryText(
               element.businessObject.targetRef.$type
             )}`
           );
@@ -88,7 +97,7 @@ export class Bpmn implements AfterViewInit {
   }
 
   openDialog(type: string): void {
-    let typeAction = this.convertToOrdinary(type);
+    let typeAction = this.convertToOrdinaryText(type);
     const dialogRef = this.dialog.open(Dialog, {
       data: { typeAction },
     });
@@ -98,7 +107,7 @@ export class Bpmn implements AfterViewInit {
     });
   }
 
-  convertToOrdinary(type: string) {
+  convertToOrdinaryText(type: string) {
     return type.split('bpmn:').join('');
   }
 
