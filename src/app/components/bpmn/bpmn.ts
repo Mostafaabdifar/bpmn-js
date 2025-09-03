@@ -74,7 +74,13 @@ export class Bpmn implements AfterViewInit {
           console.log(
             `source: ${
               element.businessObject.sourceRef.id.split('_')[0]
-            } -> target: ${element.businessObject.targetRef.id.split('_')[0]}`
+            } - ${this.convertToOrdinary(
+              element.businessObject.sourceRef.$type
+            )} -> target: ${
+              element.businessObject.targetRef.id.split('_')[0]
+            } - ${this.convertToOrdinary(
+              element.businessObject.targetRef.$type
+            )}`
           );
         }
       });
@@ -82,7 +88,7 @@ export class Bpmn implements AfterViewInit {
   }
 
   openDialog(type: string): void {
-    let typeAction = type.split('bpmn:').join('');
+    let typeAction = this.convertToOrdinary(type);
     const dialogRef = this.dialog.open(Dialog, {
       data: { typeAction },
     });
@@ -90,6 +96,10 @@ export class Bpmn implements AfterViewInit {
     dialogRef.afterClosed().subscribe((result) => {
       console.log('The dialog was closed');
     });
+  }
+
+  convertToOrdinary(type: string) {
+    return type.split('bpmn:').join('');
   }
 
   async saveDiagram() {
