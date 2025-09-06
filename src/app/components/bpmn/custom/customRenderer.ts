@@ -30,7 +30,10 @@ export default class CustomRenderer extends BaseRenderer {
   override drawShape(parentNode: any, element: any) {
     const shape = this.bpmnRenderer.drawShape(parentNode, element);
     const suitabilityScore = this.getSuitabilityScore(element);
-    if (!isNil(suitabilityScore)) {
+    if (element.type === 'bpmn:IntermediateThrowEvent') {
+      svgAttr(shape, { stroke: 'rgba(255, 77, 79, 1)' });
+    }
+    if (!isNil(suitabilityScore)) { 
       const color = this.getColor(suitabilityScore);
       svgAttr(shape, { fill: color });
 

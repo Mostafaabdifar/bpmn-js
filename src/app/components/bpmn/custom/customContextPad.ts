@@ -78,7 +78,6 @@ export default class CustomContextPad {
       };
     }
 
-    // ۱) گرفتن entryهای پیش‌فرض
     let entries = this.originalGetContextPadEntries
       ? this.originalGetContextPadEntries(element)
       : {};
@@ -93,22 +92,48 @@ export default class CustomContextPad {
     entries = Object.fromEntries(
       Object.entries(entries).filter(([key]) => !blocked.includes(key))
     );
-    entries['append.append-task'].title = 'فراخوانی API';
-    entries['append.end-event'].title = 'مسیر نهایی';
-    entries['append.gateway'].title = 'مسیر شرطی';
     entries['delete'].title = 'حذف';
-    entries['append.intermediate-event'].title = 'مسیر خطا';
-    entries['append.intermediate-event'].className =
-      'entry bpmn-icon-intermediate-event-none red';
-    entries['append.high-task'] = {
-      group: 'model',
-      className: 'bpmn-icon-task green',
-      title: translate('مسیر نگاشت'),
-      action: {
-        click: appendServiceTask(SUITABILITY_SCORE_HIGH),
-        dragstart: appendServiceTaskStart(SUITABILITY_SCORE_HIGH),
-      },
-    };
+
+    switch (element.type) {
+      case 'bpmn:Association':
+        break;
+
+      case 'bpmn:TextAnnotation':
+        entries['connect'].title = 'مسیریابی';
+        break;
+
+      case 'bpmn:SequenceFlow':
+        entries['append.text-annotation'].title = 'افزودن یادداشت';
+        break;
+
+      case 'bpmn:EndEvent':
+        entries['replace'].title = 'جایگزین';
+        entries['connect'].title = 'مسیریابی';
+        entries['append.text-annotation'].title = 'افزودن یادداشت';
+        break;
+
+      default:
+        entries['append.append-task'].title = 'فراخوانی API';
+        entries['append.end-event'].title = 'مسیر نهایی';
+        entries['append.gateway'].title = 'مسیر شرطی';
+        entries['replace'].title = 'جایگزین';
+        entries['connect'].title = 'مسیریابی';
+        entries['append.text-annotation'].title = 'افزودن یادداشت';
+        entries['append.intermediate-event'].title = 'مسیر خطا';
+        entries['append.intermediate-event'].className =
+          'entry bpmn-icon-intermediate-event-none red';
+
+        entries['append.high-task'] = {
+          group: 'model',
+          className: 'bpmn-icon-task green',
+          title: translate('مسیر نگاشت'),
+          action: {
+            click: appendServiceTask(SUITABILITY_SCORE_HIGH),
+            dragstart: appendServiceTaskStart(SUITABILITY_SCORE_HIGH),
+          },
+        };
+        break;
+    }
 
     return entries;
   }
