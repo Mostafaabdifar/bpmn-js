@@ -82,11 +82,18 @@ export default class CustomContextPad {
       ? this.originalGetContextPadEntries(element)
       : {};
 
+    console.log(entries);
+
     const blocked = [
       'append.data-object-reference',
       'append.data-store-reference',
       'append.participant-expanded',
       'append.group',
+      'append.append-task',
+      'append.end-event',
+      'append.gateway',
+      'append.intermediate-event',
+      'replace',
     ];
 
     entries = Object.fromEntries(
@@ -94,60 +101,36 @@ export default class CustomContextPad {
     );
     entries['delete'].title = 'حذف';
 
-    switch (element.type) {
-      case 'bpmn:Association':
-        break;
+    const typeConfig: Record<string, Partial<Record<string, string>>> = {
+      'bpmn:TextAnnotation': {
+        connect: 'مسیریابی',
+      },
+      'bpmn:EventBasedGateway': {
+        'append.condition-intermediate-event': 'شرط رویداد میانی',
+        'append.message-intermediate-event': 'پیام رویداد میانی',
+        'append.receive-task': 'تسک دریافتی',
+        'append.signal-intermediate-event': 'رویداد سیگنال میانی',
+        'append.text-annotation': 'افزودن یادداشت',
+        'append.timer-intermediate-event': 'زمانسنج رویداد میانی',
+        connect: 'مسیریابی',
+      },
+      'bpmn:SequenceFlow': {
+        'append.text-annotation': 'افزودن یادداشت',
+      },
+      'bpmn:EndEvent': {
+        connect: 'مسیریابی',
+        'append.text-annotation': 'افزودن یادداشت',
+      },
+    };
 
-      case 'bpmn:TextAnnotation':
-        entries['connect'].title = 'مسیریابی';
-        break;
+    const config = typeConfig[element.type];
 
-      case 'bpmn:EventBasedGateway':
-        entries['append.condition-intermediate-event'].title =
-          'شرط رویداد میانی';
-        entries['append.message-intermediate-event'].title =
-          'پیام رویداد میانی';
-        entries['append.receive-task'].title = 'تسک دریافتی';
-        entries['append.signal-intermediate-event'].title =
-          'رویداد سیگنال میانی';
-        entries['append.text-annotation'].title = 'افزودن یادداشت';
-        entries['append.timer-intermediate-event'].title =
-          'زمانسنج رویداد میانی';
-        entries['connect'].title = 'مسیریابی';
-        entries['replace'].title = 'جایگزین';
-        break;
-
-      case 'bpmn:SequenceFlow':
-        entries['append.text-annotation'].title = 'افزودن یادداشت';
-        break;
-
-      case 'bpmn:EndEvent':
-        entries['replace'].title = 'جایگزین';
-        entries['connect'].title = 'مسیریابی';
-        entries['append.text-annotation'].title = 'افزودن یادداشت';
-        break;
-
-      default:
-        entries['append.append-task'].title = 'فراخوانی API';
-        entries['append.end-event'].title = 'مسیر نهایی';
-        entries['append.gateway'].title = 'مسیر شرطی';
-        entries['replace'].title = 'جایگزین';
-        entries['connect'].title = 'مسیریابی';
-        entries['append.text-annotation'].title = 'افزودن یادداشت';
-        entries['append.intermediate-event'].title = 'مسیر خطا';
-        entries['append.intermediate-event'].className =
-          'entry bpmn-icon-intermediate-event-none red';
-
-        entries['append.high-task'] = {
-          group: 'model',
-          className: 'bpmn-icon-task green',
-          title: translate('مسیر نگاشت'),
-          action: {
-            click: appendServiceTask(SUITABILITY_SCORE_HIGH),
-            dragstart: appendServiceTaskStart(SUITABILITY_SCORE_HIGH),
-          },
-        };
-        break;
+    if (config) {
+      Object.entries(config).forEach(([key, title]) => {
+        if (entries[key]) entries[key].title = title;
+      });
+    } else {
+      entries['connect'].title = 'مسیریابی';
     }
 
     return entries;
