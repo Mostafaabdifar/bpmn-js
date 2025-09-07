@@ -82,7 +82,6 @@ export default class CustomContextPad {
       ? this.originalGetContextPadEntries(element)
       : {};
 
-    console.log(entries);
 
     const blocked = [
       'append.data-object-reference',

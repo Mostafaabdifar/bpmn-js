@@ -7,6 +7,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import BpmnColorPickerModule from 'bpmn-js-color-picker';
 import {
   BpmnPropertiesPanelModule,
   BpmnPropertiesProviderModule,
@@ -56,6 +57,7 @@ export class Bpmn implements AfterViewInit {
       additionalModules: [
         BpmnPropertiesPanelModule,
         BpmnPropertiesProviderModule,
+        // BpmnColorPickerModule,   //set color option
         {
           __init__: ['customContextPad', 'customPalette', 'customRenderer'],
           customContextPad: ['type', CustomContextPad],
