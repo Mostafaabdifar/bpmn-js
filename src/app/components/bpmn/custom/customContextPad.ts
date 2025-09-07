@@ -102,6 +102,21 @@ export default class CustomContextPad {
         entries['connect'].title = 'مسیریابی';
         break;
 
+      case 'bpmn:EventBasedGateway':
+        entries['append.condition-intermediate-event'].title =
+          'شرط رویداد میانی';
+        entries['append.message-intermediate-event'].title =
+          'پیام رویداد میانی';
+        entries['append.receive-task'].title = 'تسک دریافتی';
+        entries['append.signal-intermediate-event'].title =
+          'رویداد سیگنال میانی';
+        entries['append.text-annotation'].title = 'افزودن یادداشت';
+        entries['append.timer-intermediate-event'].title =
+          'زمانسنج رویداد میانی';
+        entries['connect'].title = 'مسیریابی';
+        entries['replace'].title = 'جایگزین';
+        break;
+
       case 'bpmn:SequenceFlow':
         entries['append.text-annotation'].title = 'افزودن یادداشت';
         break;
