@@ -1,7 +1,3 @@
-const SUITABILITY_SCORE_HIGH = 100,
-  SUITABILITY_SCORE_AVERAGE = 50,
-  SUITABILITY_SCORE_LOW = 25;
-
 export default class CustomContextPad {
   private bpmnFactory: any;
   private create: any;
@@ -28,15 +24,13 @@ export default class CustomContextPad {
       this.autoPlace = injector.get('autoPlace', false);
     }
 
-    // گرفتن provider اصلی
     const defaultProvider = injector.get('contextPadProvider', false);
     if (defaultProvider) {
       this.originalGetContextPadEntries =
         defaultProvider.getContextPadEntries.bind(defaultProvider);
 
-      // override کردن contextPad اصلی
       defaultProvider.getContextPadEntries = () => {
-        return {}; // یعنی چیزی از خودش نشون نده
+        return {};
       };
     }
 
@@ -81,7 +75,6 @@ export default class CustomContextPad {
     let entries = this.originalGetContextPadEntries
       ? this.originalGetContextPadEntries(element)
       : {};
-
 
     const blocked = [
       'append.data-object-reference',

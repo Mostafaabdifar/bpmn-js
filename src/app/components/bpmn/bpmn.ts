@@ -1,4 +1,3 @@
-import { HttpClient } from '@angular/common/http';
 import {
   AfterViewInit,
   Component,
@@ -7,7 +6,6 @@ import {
   ViewChild,
 } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import BpmnColorPickerModule from 'bpmn-js-color-picker';
 import {
   BpmnPropertiesPanelModule,
   BpmnPropertiesProviderModule,
@@ -21,9 +19,23 @@ import { Dialog } from '../dialog/dialog';
 import CustomContextPad from './custom/customContextPad';
 import CustomPalette from './custom/customPalette';
 import CustomRenderer from './custom/customRenderer';
+
+const DEFAULT_DIAGRAM = `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_1"
+                  targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Process_1" isExecutable="false"/>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1"/>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>`;
+
 @Component({
   selector: 'app-bpmm',
-  providers: [HttpClient],
   templateUrl: './bpmn.html',
   styleUrl: './bpmn.scss',
   standalone: true,
@@ -31,24 +43,15 @@ import CustomRenderer from './custom/customRenderer';
 export class Bpmn implements AfterViewInit {
   @ViewChild('canvas', { static: true }) private canvasRef!: ElementRef;
   @ViewChild('properties', { static: true }) private propertiesRef!: ElementRef;
-  private bpmnModeler!: BpmnModeler;
-  readonly dialog = inject(MatDialog);
 
-  defaultDiagram = `<?xml version="1.0" encoding="UTF-8"?>
-    <bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                      xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                      xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
-                      xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
-                      xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
-                      id="Definitions_1"
-                      targetNamespace="http://bpmn.io/schema/bpmn">
-      <bpmn:process id="Process_1" isExecutable="false"/>
-      <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-        <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1"/>
-      </bpmndi:BPMNDiagram>
-    </bpmn:definitions>`;
+  private bpmnModeler!: BpmnModeler;
+  private readonly dialog = inject(MatDialog);
 
   ngAfterViewInit(): void {
+    this.initializeModeler();
+  }
+
+  private initializeModeler(): void {
     this.bpmnModeler = new BpmnModeler({
       container: this.canvasRef.nativeElement,
       propertiesPanel: {
@@ -57,7 +60,6 @@ export class Bpmn implements AfterViewInit {
       additionalModules: [
         BpmnPropertiesPanelModule,
         BpmnPropertiesProviderModule,
-        // BpmnColorPickerModule,   //set color option
         {
           __init__: ['customContextPad', 'customPalette', 'customRenderer'],
           customContextPad: ['type', CustomContextPad],
@@ -70,51 +72,52 @@ export class Bpmn implements AfterViewInit {
       },
     });
 
-    this.bpmnModeler.importXML(this.defaultDiagram).then(() => {
+    this.bpmnModeler.importXML(DEFAULT_DIAGRAM).then(() => {
       const canvas = this.bpmnModeler.get<Canvas>('canvas');
       canvas.zoom('fit-viewport');
-      const eventBus = this.bpmnModeler.get<EventBus>('eventBus');
 
-      eventBus.on('element.dblclick', (event: any) => {
-        const element = event.element;
-        console.log(element);
-        if (element.type === 'bpmn:Task') {
-          this.openDialog(element.type);
-        }
-        if (element.type === 'bpmn:SequenceFlow') {
-          this.openDialog(element.type);
-          console.log(
-            `source: ${
-              element.businessObject.sourceRef.id.split('_')[0]
-            } - ${this.convertToOrdinaryText(
-              element.businessObject.sourceRef.$type
-            )} -> target: ${
-              element.businessObject.targetRef.id.split('_')[0]
-            } - ${this.convertToOrdinaryText(
-              element.businessObject.targetRef.$type
-            )}`
-          );
-        }
-      });
+      this.registerEvents();
     });
   }
 
-  openDialog(type: string): void {
-    let typeAction = this.convertToOrdinaryText(type);
-    const dialogRef = this.dialog.open(Dialog, {
-      data: { typeAction },
-    });
+  private registerEvents(): void {
+    const eventBus = this.bpmnModeler.get<EventBus>('eventBus');
 
-    dialogRef.afterClosed().subscribe((result) => {
-      console.log('The dialog was closed');
+    eventBus.on('element.dblclick', ({ element }: any) => {
+      if (!element?.type) return;
+
+      if (
+        element.type === 'bpmn:Task' ||
+        element.type === 'bpmn:SequenceFlow'
+      ) {
+        this.openDialog(element.type);
+      }
+
+      if (element.type === 'bpmn:SequenceFlow') {
+        console.log(
+          `source: ${
+            element.businessObject.sourceRef.id.split('_')[0]
+          } - ${this.toReadableType(
+            element.businessObject.sourceRef.$type
+          )} -> target: ${
+            element.businessObject.targetRef.id.split('_')[0]
+          } - ${this.toReadableType(element.businessObject.targetRef.$type)}`
+        );
+      }
     });
   }
 
-  convertToOrdinaryText(type: string) {
-    return type.split('bpmn:').join('');
+  private openDialog(type: string): void {
+    this.dialog.open(Dialog, {
+      data: { typeAction: this.toReadableType(type) },
+    });
   }
 
-  async saveDiagram() {
+  private toReadableType(type: string): string {
+    return type.replace('bpmn:', '');
+  }
+
+  async saveDiagram(): Promise<void> {
     try {
       const { xml } = await this.bpmnModeler.saveXML({ format: true });
       console.log('BPMN XML:', xml);
