@@ -5,20 +5,11 @@ const SUITABILITY_SCORE = {
 } as const;
 
 export default class CustomPalette {
-  static $inject = [
-    'bpmnFactory',
-    'create',
-    'elementFactory',
-    'palette',
-    'translate',
-    'injector',
-  ];
-
-  private readonly bpmnFactory: any;
-  private readonly create: any;
-  private readonly elementFactory: any;
-  private readonly translate: any;
-  private readonly originalGetPaletteEntries?: () => Record<string, any>;
+  private bpmnFactory: any;
+  private create: any;
+  private elementFactory: any;
+  private translate: any;
+  private originalGetPaletteEntries: any;
 
   private static readonly BLOCKED_ENTRIES = [
     'create.subprocess-expanded',
@@ -46,28 +37,30 @@ export default class CustomPalette {
       this.originalGetPaletteEntries =
         defaultProvider.getPaletteEntries.bind(defaultProvider);
 
-      // Disable default entries
-      defaultProvider.getPaletteEntries = () => ({});
+      defaultProvider.getPaletteEntries = () => {
+        return {};
+      };
     }
 
     palette.registerProvider(this);
   }
 
-  getPaletteEntries(): Record<string, any> {
+  getPaletteEntries() {
     const { bpmnFactory, create, elementFactory, translate } = this;
 
-    const createTask = (score: number) => (event: any) => {
-      const businessObject = bpmnFactory.create('bpmn:Task', {
-        suitable: score,
-      });
+    function createTask(suitabilityScore: number) {
+      return function (event: any) {
+        const businessObject = bpmnFactory.create('bpmn:Task');
+        businessObject.suitable = suitabilityScore;
 
-      const shape = elementFactory.createShape({
-        type: 'bpmn:Task',
-        businessObject,
-      });
+        const shape = elementFactory.createShape({
+          type: 'bpmn:Task',
+          businessObject,
+        });
 
-      create.start(event, shape);
-    };
+        create.start(event, shape);
+      };
+    }
 
     let entries: Record<string, any> = this.originalGetPaletteEntries
       ? this.originalGetPaletteEntries()
@@ -78,7 +71,6 @@ export default class CustomPalette {
         ([key]) => !CustomPalette.BLOCKED_ENTRIES.includes(key)
       )
     );
-
     Object.assign(entries, {
       'create.start-event': {
         ...entries['create.start-event'],
@@ -102,8 +94,6 @@ export default class CustomPalette {
         className: 'entry bpmn-icon-intermediate-event-none red',
       },
     });
-
-    // custom entries
     entries['create.high-task'] = {
       group: 'activity',
       className: 'bpmn-icon-task green',
@@ -113,6 +103,44 @@ export default class CustomPalette {
         click: createTask(SUITABILITY_SCORE.HIGH),
       },
     };
+
     return entries;
   }
 }
+
+(CustomPalette as any).$inject = [
+  'bpmnFactory',
+  'create',
+  'elementFactory',
+  'palette',
+  'translate',
+  'injector',
+];
+
+//     'create.low-task': {
+//   group: 'activity',
+//   className: 'bpmn-icon-task red',
+//   title: translate('Create Red Task'),
+//   action: {
+//     dragstart: createTask(SUITABILITY_SCORE_LOW),
+//     click: createTask(SUITABILITY_SCORE_LOW),
+//   },
+// },
+// 'create.average-task': {
+//   group: 'activity',
+//   className: 'bpmn-icon-task yellow',
+//   title: translate('Create Yellow Task'),
+//   action: {
+//     dragstart: createTask(SUITABILITY_SCORE_AVERAGE),
+//     click: createTask(SUITABILITY_SCORE_AVERAGE),
+//   },
+// },
+// 'create.high-task': {
+//   group: 'activity',
+//   className: 'bpmn-icon-task green',
+//   title: translate('مسیر نگاشت'),
+//   action: {
+//     dragstart: createTask(SUITABILITY_SCORE_HIGH),
+//     click: createTask(SUITABILITY_SCORE_HIGH),
+//   },
+// },
