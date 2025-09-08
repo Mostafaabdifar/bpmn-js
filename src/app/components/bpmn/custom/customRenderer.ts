@@ -44,7 +44,6 @@ export default class CustomRenderer extends BaseRenderer {
       const color = this.getColor(suitabilityScore);
       svgAttr(shape, { fill: color });
 
-      // 👉 optional custom overlay
       // const rect = drawRect(parentNode, 50, 20, TASK_BORDER_RADIUS, color);
       // svgAttr(rect, { transform: 'translate(-20, -10)' });
     }
