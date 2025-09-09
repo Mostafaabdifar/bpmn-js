@@ -51,8 +51,8 @@ export default class CustomPalette {
     function createTask(suitabilityScore: number) {
       return function (event: any) {
         const businessObject = bpmnFactory.create('bpmn:Task');
+        businessObject.id = `${businessObject.id}_custom`;
         businessObject.suitable = suitabilityScore;
-
         const shape = elementFactory.createShape({
           type: 'bpmn:Task',
           businessObject,
