@@ -1,7 +1,28 @@
 <h2 mat-dialog-title>{{ data.typeAction }}</h2>
 <mat-dialog-content>
+  @if (data.typeAction === "StartEvent") {
+  <form [formGroup]="form">
+    <mat-form-field style="width: 100%">
+      <mat-label>Company Name</mat-label>
+      <input
+        type="text"
+        matInput
+        formControlName="companyName"
+        placeholder="Company Name"
+      />
+      @if (form.get('companyName')?.hasError('required')) {
+      <mat-error>Company name is <strong>required</strong></mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field style="width: 100%">
+      <mat-label>Company Description</mat-label>
+      <textarea matInput formControlName="companyDescription"></textarea>
+    </mat-form-field>
+  </form>
+  }
   <p>{{ data.typeAction }} Dialog</p>
 </mat-dialog-content>
 <mat-dialog-actions>
-  <button matButton (click)="onOkClick()">Ok</button>
+  <button [disabled]="form.invalid" matButton (click)="onOkClick()">Ok</button>
 </mat-dialog-actions>

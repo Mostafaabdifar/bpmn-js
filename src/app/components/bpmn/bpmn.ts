@@ -19,6 +19,7 @@ import { Dialog } from '../dialog/dialog';
 import CustomContextPad from './custom/customContextPad';
 import CustomPalette from './custom/customPalette';
 import CustomRenderer from './custom/customRenderer';
+import { ChannelClient, CreateChannelCommand } from '../../proxy/Integration';
 
 const DEFAULT_DIAGRAM = `<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -46,6 +47,24 @@ export class Bpmn implements AfterViewInit {
 
   private bpmnModeler!: BpmnModeler;
   private readonly dialog = inject(MatDialog);
+
+  createChannelCommand = new CreateChannelCommand();
+
+  constructor(private channelclient: ChannelClient) {
+    // this.dialog.afterAllClosed.subscribe(result => {
+      // console.log(result);
+      // if (result) {
+        // this.createChannelCommand.init({
+        //   name: this.form.get('companyName'),
+        //   companyDescription: this.form.get('companyDescription'),
+        // });
+        // this.channelclient.create(this.createChannelCommand);
+
+        // console.log('Form Data:', result);
+        // { companyName: '...', companyDescription: '...' }
+      // }
+    // });
+  }
 
   ngAfterViewInit(): void {
     this.initializeModeler();
@@ -90,6 +109,10 @@ export class Bpmn implements AfterViewInit {
         element.type === 'bpmn:Task' ||
         element.type === 'bpmn:SequenceFlow'
       ) {
+        this.openDialog(element.type);
+      }
+
+      if (element.type === 'bpmn:StartEvent') {
         this.openDialog(element.type);
       }
 

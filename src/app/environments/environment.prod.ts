@@ -1,0 +1,15 @@
+export const environment = {
+  isProduction: true,
+  //MediatorJobHubUrl: 'http://localhost:65055/',
+  MediatorJobHubUrl: 'http://192.168.2.58:65055/',
+  //DirectCommunicationHubUrl: 'http://localhost:65060/',
+  DirectCommunicationHubUrl: 'http://192.168.2.58:65060/',
+  //integrationUrl: '  http://localhost:65050/api',
+  integrationUrl: 'http://192.168.2.58:65050/api',
+  //enumUrl: 'http://localhost:65050',
+  enumUrl: 'http://192.168.2.58:65050',
+  myReadUrl: 'https://gateway.mammutgroup.com/my/read',
+  appId: '8DAF0DBC-2409-4F18-B5AF-B13C8E53E821',
+  authReadUrl: 'https://gateway.mammutgroup.com/auth/read',
+  authRedirectUri: 'https://my.mammutgroup.com/auth/login',
+};
