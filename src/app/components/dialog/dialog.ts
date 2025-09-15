@@ -4,7 +4,7 @@ import {
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
-  Validators
+  Validators,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import {
@@ -12,12 +12,18 @@ import {
   MatDialogActions,
   MatDialogContent,
   MatDialogRef,
-  MatDialogTitle
+  MatDialogTitle,
+  MatDialogClose,
 } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { ChannelClient, CreateChannelCommand } from '../../proxy/Integration';
+import {
+  AttachChannelPathApiCallingBasedCommand,
+  ChannelClient,
+  CreateChannelCommand,
+} from '../../proxy/Integration';
 export interface DialogData {
+  label: string;
   typeAction: string;
 }
 @Component({
@@ -27,6 +33,7 @@ export interface DialogData {
     MatDialogActions,
     MatDialogTitle,
     MatButtonModule,
+    MatDialogClose,
     MatInputModule,
     FormsModule,
     MatFormFieldModule,
@@ -38,29 +45,68 @@ export interface DialogData {
 export class Dialog {
   readonly dialogRef = inject(MatDialogRef<Dialog>);
   readonly data = inject<DialogData>(MAT_DIALOG_DATA);
-  form: FormGroup;
+  startForm: FormGroup;
+  apiForm: FormGroup;
   createChannelCommand = new CreateChannelCommand();
+  attachAPiCall = new AttachChannelPathApiCallingBasedCommand();
+  beforePathId: string = '';
+  channelId: string = '91eff4bb-805e-441a-83be-bfb85e17c11e';
 
   constructor(private fb: FormBuilder, private channelclient: ChannelClient) {
-    this.form = this.fb.group({
+    this.startForm = this.fb.group({
       companyName: ['', Validators.required],
-      companyDescription: ['', Validators.required],
+      companyDescription: [''],
     });
+    this.apiForm = this.fb.group({
+      conditionLabel: ['', Validators.required],
+      companyDescription: [''],
+    });
+
+    if (this.data.label) {
+      this.startForm.get('companyName')?.setValue(this.data.label);
+    }
   }
 
   onOkClick(): void {
-    this.createChannelCommand.init({
-      name: this.form.get('companyName')?.value,
-      description: this.form.get('companyDescription')?.value,
-    });
-    if (this.form.valid) {
-      this.channelclient.create(this.createChannelCommand).subscribe({
-        next: () => {
-          this.dialogRef.close(this.form.value);
-        },
-        error: () => {},
-        complete: () => {},
+    if (this.data.typeAction === 'StartEvent') {
+      this.createChannelCommand.init({
+        name: this.startForm.get('companyName')?.value,
+        description: this.startForm.get('companyDescription')?.value,
       });
+      if (this.startForm.valid) {
+        this.channelclient.create(this.createChannelCommand).subscribe({
+          next: (res) => {
+            this.beforePathId = res.id!;
+            this.dialogRef.close({
+              valueForm: this.startForm.value,
+              type: this.data.typeAction,
+            });
+          },
+          error: () => {},
+          complete: () => {},
+        });
+      }
+    } else if (this.data.typeAction === 'Task') {
+      this.attachAPiCall.init({
+        name: this.apiForm.get('conditionLabel')?.value,
+        description: this.apiForm.get('companyDescription')?.value,
+        beforeChannelPathId: this.beforePathId,
+        channelId: this.channelId,
+      });
+      if (this.apiForm.valid) {
+        this.channelclient
+          .attachPathApiCallingBased(this.attachAPiCall)
+          .subscribe({
+            next: (res) => {
+              this.dialogRef.close({
+                valueForm: this.apiForm.value,
+                type: this.data.typeAction,
+              });
+            },
+            error: () => {},
+            complete: () => {},
+          });
+      }
     }
   }
 }

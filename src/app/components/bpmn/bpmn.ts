@@ -20,6 +20,8 @@ import CustomContextPad from './custom/customContextPad';
 import CustomPalette from './custom/customPalette';
 import CustomRenderer from './custom/customRenderer';
 import { ChannelClient, CreateChannelCommand } from '../../proxy/Integration';
+import { DirectEditing, Modeling } from './custom/bpmn-model';
+import { Connection, Shape } from 'bpmn-js/lib/model/Types';
 
 const DEFAULT_DIAGRAM = `<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -46,25 +48,13 @@ export class Bpmn implements AfterViewInit {
   @ViewChild('properties', { static: true }) private propertiesRef!: ElementRef;
 
   private bpmnModeler!: BpmnModeler;
-  private readonly dialog = inject(MatDialog);
-
+  selectedShape: Shape | Connection | undefined;
   createChannelCommand = new CreateChannelCommand();
 
-  constructor(private channelclient: ChannelClient) {
-    // this.dialog.afterAllClosed.subscribe(result => {
-      // console.log(result);
-      // if (result) {
-        // this.createChannelCommand.init({
-        //   name: this.form.get('companyName'),
-        //   companyDescription: this.form.get('companyDescription'),
-        // });
-        // this.channelclient.create(this.createChannelCommand);
-
-        // console.log('Form Data:', result);
-        // { companyName: '...', companyDescription: '...' }
-      // }
-    // });
-  }
+  constructor(
+    private channelclient: ChannelClient,
+    private DialogService: MatDialog
+  ) {}
 
   ngAfterViewInit(): void {
     this.initializeModeler();
@@ -102,38 +92,65 @@ export class Bpmn implements AfterViewInit {
   private registerEvents(): void {
     const eventBus = this.bpmnModeler.get<EventBus>('eventBus');
 
-    eventBus.on('element.dblclick', ({ element }: any) => {
-      if (!element?.type) return;
+    eventBus.on(
+      'shape.added',
+      ({ element }: { element: Shape | Connection }) => {
+        if (!element?.type) return;
 
-      if (
-        element.type === 'bpmn:Task' ||
-        element.type === 'bpmn:SequenceFlow'
-      ) {
-        this.openDialog(element.type);
-      }
+        this.selectedShape = element;
 
-      if (element.type === 'bpmn:StartEvent') {
-        this.openDialog(element.type);
-      }
+        if (
+          element.type === 'bpmn:Task' ||
+          element.type === 'bpmn:SequenceFlow' ||
+          element.type === 'bpmn:StartEvent'
+        ) {
+          const directEditing =
+            this.bpmnModeler.get<DirectEditing>('directEditing');
+          directEditing.cancel();
+          this.openDialog(
+            element.type,
+            this.selectedShape?.businessObject.name
+          );
+        }
 
-      if (element.type === 'bpmn:SequenceFlow') {
-        console.log(
-          `source: ${
-            element.businessObject.sourceRef.id.split('_')[0]
-          } - ${this.toReadableType(
-            element.businessObject.sourceRef.$type
-          )} -> target: ${
-            element.businessObject.targetRef.id.split('_')[0]
-          } - ${this.toReadableType(element.businessObject.targetRef.$type)}`
-        );
+        if (element.type === 'bpmn:SequenceFlow') {
+          console.log(
+            `source: ${
+              element.businessObject.sourceRef.id.split('_')[0]
+            } - ${this.toReadableType(
+              element.businessObject.sourceRef.$type
+            )} -> target: ${
+              element.businessObject.targetRef.id.split('_')[0]
+            } - ${this.toReadableType(element.businessObject.targetRef.$type)}`
+          );
+        }
       }
-    });
+    );
   }
 
-  private openDialog(type: string): void {
-    this.dialog.open(Dialog, {
-      data: { typeAction: this.toReadableType(type) },
+  private openDialog(type: string, label?: any): void {
+    const dialogRef = this.DialogService.open(Dialog, {
+      data: { typeAction: this.toReadableType(type), label },
     });
+
+    dialogRef
+      .afterClosed()
+      .subscribe((result: { valueForm: any; type: string }) => {
+        if (!result) return;
+        const modeling = this.bpmnModeler.get<Modeling>('modeling');
+        if (result.type === 'StartEvent') {
+          modeling.updateLabel(
+            this.selectedShape,
+            result.valueForm['companyName']
+          );
+        }
+        if (result.type === 'Task') {
+          modeling.updateLabel(
+            this.selectedShape,
+            result.valueForm['conditionLabel'] || 'Default Note'
+          );
+        }
+      });
   }
 
   private toReadableType(type: string): string {

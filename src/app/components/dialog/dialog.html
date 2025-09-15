@@ -1,7 +1,7 @@
 <h2 mat-dialog-title>{{ data.typeAction }}</h2>
 <mat-dialog-content>
   @if (data.typeAction === "StartEvent") {
-  <form [formGroup]="form">
+  <form [formGroup]="startForm">
     <mat-form-field style="width: 100%">
       <mat-label>Company Name</mat-label>
       <input
@@ -10,7 +10,7 @@
         formControlName="companyName"
         placeholder="Company Name"
       />
-      @if (form.get('companyName')?.hasError('required')) {
+      @if (startForm.get('companyName')?.hasError('required')) {
       <mat-error>Company name is <strong>required</strong></mat-error>
       }
     </mat-form-field>
@@ -20,9 +20,25 @@
       <textarea matInput formControlName="companyDescription"></textarea>
     </mat-form-field>
   </form>
+  } @if (data.typeAction === "Task") {
+  <form [formGroup]="apiForm">
+    <mat-form-field style="width: 100%">
+      <mat-label>Condition Name</mat-label>
+      <input
+        type="text"
+        matInput
+        formControlName="conditionLabel"
+        placeholder="Condition Name"
+      />
+      @if (apiForm.get('conditionLabel')?.hasError('required')) {
+      <mat-error>Condition is <strong>required</strong></mat-error>
+      }
+    </mat-form-field>
+  </form>
   }
   <p>{{ data.typeAction }} Dialog</p>
 </mat-dialog-content>
 <mat-dialog-actions>
-  <button [disabled]="form.invalid" matButton (click)="onOkClick()">Ok</button>
+  <button [disabled]="startForm.invalid && apiForm.invalid" matButton (click)="onOkClick()">Ok</button>
+  <button matButton mat-dialog-close>Cancel</button>
 </mat-dialog-actions>
