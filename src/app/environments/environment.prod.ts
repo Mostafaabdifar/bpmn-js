@@ -5,7 +5,7 @@ export const environment = {
   //DirectCommunicationHubUrl: 'http://localhost:65060/',
   DirectCommunicationHubUrl: 'http://192.168.2.58:65060/',
   //integrationUrl: '  http://localhost:65050/api',
-  integrationUrl: 'http://192.168.2.58:65050/api',
+  integrationUrl: 'http://172.24.41.31:65050/api',
   //enumUrl: 'http://localhost:65050',
   enumUrl: 'http://192.168.2.58:65050',
   myReadUrl: 'https://gateway.mammutgroup.com/my/read',
