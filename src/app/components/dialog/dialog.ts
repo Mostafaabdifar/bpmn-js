@@ -24,6 +24,7 @@ import {
 } from '../../proxy/Integration';
 import { EnumService, ValueItem } from '../../service/enum.service';
 import { MatSelectModule } from '@angular/material/select';
+import { JsonPrettyPipe } from '../../service/json-pretty-pipe';
 export interface DialogData {
   label: string;
   typeAction: string;
@@ -40,7 +41,8 @@ export interface DialogData {
     FormsModule,
     MatFormFieldModule,
     ReactiveFormsModule,
-    MatSelectModule
+    MatSelectModule,
+    JsonPrettyPipe,
   ],
   templateUrl: './dialog.html',
   styleUrl: './dialog.scss',

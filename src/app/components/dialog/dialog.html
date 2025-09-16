@@ -82,11 +82,21 @@
     </mat-form-field>
     <mat-form-field class="w-full">
       <mat-label>Body</mat-label>
-      <input type="text" matInput formControlName="body" placeholder="Body" />
-      @if (apiForm.get('conditionLabel')?.hasError('required')) {
+      <textarea
+        matInput
+        formControlName="body"
+        rows="6"
+        placeholder="Enter JSON"
+      ></textarea>
+      @if (apiForm.get('body')?.hasError('required')) {
       <mat-error>Body is <strong>required</strong></mat-error>
       }
     </mat-form-field>
+
+    <div class="json-viewer">
+      <pre [innerHTML]="apiForm.get('body')?.value | jsonPretty"></pre>
+    </div>
+
     <mat-form-field class="w-full">
       <mat-label>Auth Http Type</mat-label>
       <mat-select formControlName="authHttpType">
