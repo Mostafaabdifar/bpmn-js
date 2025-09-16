@@ -121,8 +121,6 @@ export default class CustomContextPad {
       Object.entries(config).forEach(([key, title]) => {
         if (entries[key]) entries[key].title = title;
       });
-    } else {
-      entries['connect'].title = 'مسیریابی';
     }
 
     return entries;

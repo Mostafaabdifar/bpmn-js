@@ -116,31 +116,30 @@ export class Bpmn implements AfterViewInit {
     eventBus.on('connection.added', ({ element }: { element: Connection }) => {
       if (!element?.id) return;
 
-      this.diagramModel.connections[element.id] = {
-        id: element.id,
+      const connectionId = element.id;
+      const sourceId = element.source?.id;
+      const targetId = element.target?.id;
+
+      const connection = {
+        id: connectionId,
         type: this.toReadableType(element.type),
-        source: element.source?.id,
-        target: element.target?.id,
+        source: sourceId,
+        target: targetId,
       };
+      this.diagramModel.connections[connectionId] = connection;
 
-      console.log(
-        'Connection اضافه شد:',
-        this.diagramModel.connections[element.id]
-      );
+      console.log('Connection اضافه شد:', connection);
 
-      this.setNextChannelPathCommand.init({
+      const commandPayload = {
         commandId: null,
         channelId: this.channelId,
-        channelPathId:
-          this.diagramModel.shapes[
-            this.diagramModel.connections[element.id]['source']
-          ].pathId,
+        channelPathId: this.diagramModel.shapes[sourceId!]?.pathId ?? null,
         resolverId: null,
-        nextChannelPathId:
-          this.diagramModel.shapes[
-            this.diagramModel.connections[element.id]['target']
-          ].pathId,
-      });
+        nextChannelPathId: this.diagramModel.shapes[targetId!]?.pathId ?? null,
+      };
+
+      this.setNextChannelPathCommand.init(commandPayload);
+
       this.channelclient
         .setNextChannelPath(this.setNextChannelPathCommand)
         .subscribe({
