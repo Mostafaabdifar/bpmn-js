@@ -1,27 +1,21 @@
-import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  inject,
-  ViewChild,
-} from '@angular/core';
+import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import {
   BpmnPropertiesPanelModule,
   BpmnPropertiesProviderModule,
 } from 'bpmn-js-properties-panel';
+import { Connection, Shape } from 'bpmn-js/lib/model/Types';
 import 'camunda-bpmn-js/dist/assets/camunda-platform-modeler.css';
 import BpmnModeler from 'camunda-bpmn-js/lib/base/Modeler';
 import * as camundaModdleDescriptor from 'camunda-bpmn-moddle/resources/camunda.json';
 import Canvas from 'diagram-js/lib/core/Canvas';
 import EventBus from 'diagram-js/lib/core/EventBus';
+import { CreateChannelCommand } from '../../proxy/Integration';
 import { Dialog } from '../dialog/dialog';
+import { DirectEditing, Modeling } from './custom/bpmn-model';
 import CustomContextPad from './custom/customContextPad';
 import CustomPalette from './custom/customPalette';
 import CustomRenderer from './custom/customRenderer';
-import { ChannelClient, CreateChannelCommand } from '../../proxy/Integration';
-import { DirectEditing, Modeling } from './custom/bpmn-model';
-import { Connection, Shape } from 'bpmn-js/lib/model/Types';
 
 const DEFAULT_DIAGRAM = `<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -51,10 +45,15 @@ export class Bpmn implements AfterViewInit {
   selectedShape: Shape | undefined;
   createChannelCommand = new CreateChannelCommand();
 
-  constructor(
-    private channelclient: ChannelClient,
-    private DialogService: MatDialog
-  ) {}
+  diagramModel: {
+    shapes: Record<string, any>;
+    connections: Record<string, any>;
+  } = {
+    shapes: {},
+    connections: {},
+  };
+
+  constructor(private DialogService: MatDialog) {}
 
   ngAfterViewInit(): void {
     this.initializeModeler();
@@ -92,61 +91,65 @@ export class Bpmn implements AfterViewInit {
   private registerEvents(): void {
     const eventBus = this.bpmnModeler.get<EventBus>('eventBus');
 
-    eventBus.on('connection.added', ({ element }: { element: any }) => {
-      if (element.type === 'bpmn:SequenceFlow') {
-        console.log(element.source);
-        console.log(element.target);
-      }
-    });
-
-    eventBus.on('connect.end', ({ context }: any) => {
-      const connection = context.connection;
-      if (connection?.type === 'bpmn:SequenceFlow') {
-        console.log('✏️ کاربر مسیر رو کشید:', connection);
-        console.log(
-          `✅ مسیر ساخته شد -> 
-        source: ${
-          connection.businessObject.sourceRef?.id
-        } (${this.toReadableType(connection.businessObject.sourceRef.$type)})
-        target: ${
-          connection.businessObject.targetRef?.id
-        } (${this.toReadableType(connection.businessObject.targetRef.$type)})`
-        );
-      }
-    });
-
     eventBus.on('shape.added', ({ element }: { element: Shape }) => {
-      console.log(element);
-      if (!element?.type) return;
+      if (!element?.id || !element.type) return;
+
+      if (element.type === 'label' || element.type === 'bpmn:TextAnnotation') {
+        return;
+      }
+
+      const directEditing =
+        this.bpmnModeler.get<DirectEditing>('directEditing');
+      directEditing.cancel();
 
       this.selectedShape = element;
-
-      if (
-        element.type === 'bpmn:Task' ||
-        element.type === 'bpmn:SequenceFlow' ||
-        element.type === 'bpmn:StartEvent'
-      ) {
-        const directEditing =
-          this.bpmnModeler.get<DirectEditing>('directEditing');
-        directEditing.cancel();
-        this.openDialog(element.type, this.selectedShape?.businessObject.name);
-      }
-
-      if (element.type === 'bpmn:SequenceFlow') {
-        console.log(
-          `source: ${
-            element.businessObject.sourceRef.id.split('_')[0]
-          } - ${this.toReadableType(
-            element.businessObject.sourceRef.$type
-          )} -> target: ${
-            element.businessObject.targetRef.id.split('_')[0]
-          } - ${this.toReadableType(element.businessObject.targetRef.$type)}`
-        );
-      }
+      this.openDialog(element.type, element.businessObject?.name, element);
     });
+
+    eventBus.on('connection.added', ({ element }: { element: Connection }) => {
+      if (!element?.id) return;
+
+      this.diagramModel.connections[element.id] = {
+        id: element.id,
+        type: this.toReadableType(element.type),
+        source: element.source?.id,
+        target: element.target?.id,
+      };
+
+      console.log(
+        '✅ Connection اضافه شد:',
+        this.diagramModel.connections[element.id]
+      );
+    });
+
+    eventBus.on('shape.removed', ({ element }: { element: Shape }) => {
+      delete this.diagramModel.shapes[element.id];
+      console.log(`🗑️ Shape حذف شد: ${element.id}`);
+    });
+
+    eventBus.on(
+      'connection.removed',
+      ({ element }: { element: Connection }) => {
+        delete this.diagramModel.connections[element.id];
+        console.log(`🗑️ Connection حذف شد: ${element.id}`);
+      }
+    );
+
+    eventBus.on(
+      'element.changed',
+      ({ element }: { element: Shape | Connection }) => {
+        if (element.type?.startsWith('bpmn:')) {
+          if (this.diagramModel.shapes[element.id]) {
+            this.diagramModel.shapes[element.id].name =
+              element.businessObject?.name || '';
+          }
+          console.log(`✏️ Element آپدیت شد: ${element.id}`, this.diagramModel);
+        }
+      }
+    );
   }
 
-  private openDialog(type: string, label?: any): void {
+  private openDialog(type: string, label?: any, element?: Shape): void {
     const dialogRef = this.DialogService.open(Dialog, {
       data: { typeAction: this.toReadableType(type), label },
     });
@@ -154,20 +157,29 @@ export class Bpmn implements AfterViewInit {
     dialogRef
       .afterClosed()
       .subscribe((result: { valueForm: any; type: string }) => {
-        if (!result) return;
+        if (!result || !element) return;
+
         const modeling = this.bpmnModeler.get<Modeling>('modeling');
+
         if (result.type === 'StartEvent') {
-          modeling.updateLabel(
-            this.selectedShape,
-            result.valueForm['companyName']
-          );
+          modeling.updateLabel(element, result.valueForm['companyName']);
         }
         if (result.type === 'Task') {
-          modeling.updateLabel(
-            this.selectedShape,
-            result.valueForm['conditionLabel']
-          );
+          modeling.updateLabel(element, result.valueForm['conditionLabel']);
         }
+
+        this.diagramModel.shapes[element.id] = {
+          id: element.id,
+          type: this.toReadableType(element.type),
+          name: element.businessObject?.name || '',
+          x: element.x,
+          y: element.y,
+        };
+
+        console.log(
+          '📌 Shape در مدل ذخیره شد:',
+          this.diagramModel.shapes[element.id]
+        );
       });
   }
 
