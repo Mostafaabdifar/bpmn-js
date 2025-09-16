@@ -154,13 +154,45 @@
       <textarea matInput formControlName="description"></textarea>
     </mat-form-field>
   </form>
+  } @else if (data.typeAction === "CustomTask") {
+  <form [formGroup]="mapperForm">
+    <mat-form-field class="w-full">
+      <mat-label>Name</mat-label>
+      <input type="text" matInput formControlName="name" placeholder="name" />
+      @if (apiForm.get('name')?.hasError('required')) {
+      <mat-error>name is <strong>required</strong></mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field class="w-full">
+      <mat-label>Message Mapping</mat-label>
+      <input
+        type="text"
+        matInput
+        formControlName="messageMapping"
+        placeholder="message"
+      />
+      @if (apiForm.get('name')?.hasError('required')) {
+      <mat-error>Message mapping is <strong>required</strong></mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field class="w-full">
+      <mat-label>Description</mat-label>
+      <textarea matInput formControlName="description"></textarea>
+    </mat-form-field>
+  </form>
   }
   <p>{{ data.typeAction }} Dialog</p>
 </mat-dialog-content>
 <mat-dialog-actions>
   <button
     matButton
-    [disabled]="startForm.invalid && apiForm.invalid && completeForm.invalid"
+    [disabled]="
+      startForm.invalid &&
+      apiForm.invalid &&
+      completeForm.invalid &&
+      mapperForm.invalid
+    "
     (click)="onOkClick()"
   >
     Ok

@@ -21,6 +21,7 @@ import { MatSelectModule } from '@angular/material/select';
 import {
   AttachChannelPathApiCallingBasedCommand,
   AttachChannelPathCompleteBasedCommand,
+  AttachChannelPathMapperBasedCommand,
   AttachChannelPathStartBasedCommand,
   ChannelClient,
 } from '../../proxy/Integration';
@@ -54,9 +55,11 @@ export class Dialog implements OnInit {
   startForm: FormGroup;
   apiForm: FormGroup;
   completeForm: FormGroup;
+  mapperForm: FormGroup;
   attachAPiCall = new AttachChannelPathApiCallingBasedCommand();
   attachPathStart = new AttachChannelPathStartBasedCommand();
   attachComplete = new AttachChannelPathCompleteBasedCommand();
+  attachMapper = new AttachChannelPathMapperBasedCommand();
   channelId: string = '91eff4bb-805e-441a-83be-bfb85e17c11e';
   HttpMethodTypes: ValueItem[] = [];
   AuthHttpTypes: ValueItem[] = [];
@@ -88,10 +91,11 @@ export class Dialog implements OnInit {
       completedType: ['', Validators.required],
       description: [''],
     });
-
-    if (this.data.label) {
-      this.startForm.get('companyName')?.setValue(this.data.label);
-    }
+    this.mapperForm = this.fb.group({
+      name: ['', Validators.required],
+      messageMapping: ['', Validators.required],
+      description: [''],
+    });
   }
 
   ngOnInit(): void {
@@ -173,6 +177,30 @@ export class Dialog implements OnInit {
         valueForm: '',
         type: type,
       });
+    } else if (type === 'CustomTask') {
+      this.attachMapper.init({
+        name: this.mapperForm.get('name')?.value,
+        messageMappingId: this.mapperForm.get('messageMapping')?.value,
+        description: this.mapperForm.get('description')?.value,
+        channelId: this.channelId,
+        beforeChannelPathId: null,
+        commandId: null,
+        actions: null,
+      });
+      if (this.mapperForm.valid) {
+        this.channelclient.attachPathMapperBased(this.attachMapper).subscribe({
+          next: (res) => {
+            this.dialogRef.close({
+              valueForm: this.mapperForm.value,
+              type: type,
+              pathId: res.pathId,
+            });
+          },
+          error: (err) => {
+            console.log(err);
+          },
+        });
+      }
     } else if (type === 'EndEvent') {
       this.attachComplete.init({
         name: this.completeForm.get('name')?.value,

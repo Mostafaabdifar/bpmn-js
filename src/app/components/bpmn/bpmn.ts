@@ -183,7 +183,12 @@ export class Bpmn implements AfterViewInit {
 
   private openDialog(type: string, label?: any, element?: Shape): void {
     const dialogRef = this.DialogService.open(Dialog, {
-      data: { typeAction: this.toReadableType(type), label },
+      data: {
+        typeAction: element?.id.includes('Custom')
+          ? 'CustomTask'
+          : this.toReadableType(type),
+        label,
+      },
     });
 
     dialogRef
