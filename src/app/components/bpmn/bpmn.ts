@@ -116,40 +116,42 @@ export class Bpmn implements AfterViewInit {
     eventBus.on('connection.added', ({ element }: { element: Connection }) => {
       if (!element?.id) return;
 
-      const connectionId = element.id;
-      const sourceId = element.source?.id;
-      const targetId = element.target?.id;
+      if (element.type === 'bpmn:SequenceFlow') {
+        const connectionId = element.id;
+        const sourceId = element.source?.id;
+        const targetId = element.target?.id;
+        const connection = {
+          id: connectionId,
+          type: this.toReadableType(element.type),
+          source: sourceId,
+          target: targetId,
+        };
+        this.diagramModel.connections[connectionId] = connection;
 
-      const connection = {
-        id: connectionId,
-        type: this.toReadableType(element.type),
-        source: sourceId,
-        target: targetId,
-      };
-      this.diagramModel.connections[connectionId] = connection;
+        console.log('Connection اضافه شد:', connection);
 
-      console.log('Connection اضافه شد:', connection);
+        const commandPayload = {
+          commandId: null,
+          channelId: this.channelId,
+          channelPathId: this.diagramModel.shapes[sourceId!]?.pathId ?? null,
+          resolverId: null,
+          nextChannelPathId:
+            this.diagramModel.shapes[targetId!]?.pathId ?? null,
+        };
 
-      const commandPayload = {
-        commandId: null,
-        channelId: this.channelId,
-        channelPathId: this.diagramModel.shapes[sourceId!]?.pathId ?? null,
-        resolverId: null,
-        nextChannelPathId: this.diagramModel.shapes[targetId!]?.pathId ?? null,
-      };
+        this.setNextChannelPathCommand.init(commandPayload);
 
-      this.setNextChannelPathCommand.init(commandPayload);
-
-      this.channelclient
-        .setNextChannelPath(this.setNextChannelPathCommand)
-        .subscribe({
-          next: (res) => {
-            console.log(res);
-          },
-          error: (err) => {
-            console.log(err);
-          },
-        });
+        this.channelclient
+          .setNextChannelPath(this.setNextChannelPathCommand)
+          .subscribe({
+            next: (res) => {
+              console.log(res);
+            },
+            error: (err) => {
+              console.log(err);
+            },
+          });
+      }
     });
 
     eventBus.on('shape.removed', ({ element }: { element: Shape }) => {
@@ -201,6 +203,9 @@ export class Bpmn implements AfterViewInit {
         }
         if (result.type === 'Task') {
           modeling.updateLabel(element, result.valueForm['conditionLabel']);
+        }
+        if (result.type === 'EndEvent') {
+          modeling.updateLabel(element, result.valueForm['name']);
         }
 
         this.diagramModel.shapes[element.id] = {

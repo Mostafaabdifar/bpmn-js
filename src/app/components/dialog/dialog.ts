@@ -10,21 +10,21 @@ import { MatButtonModule } from '@angular/material/button';
 import {
   MAT_DIALOG_DATA,
   MatDialogActions,
+  MatDialogClose,
   MatDialogContent,
   MatDialogRef,
   MatDialogTitle,
-  MatDialogClose,
 } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import {
   AttachChannelPathApiCallingBasedCommand,
+  AttachChannelPathCompleteBasedCommand,
   AttachChannelPathStartBasedCommand,
   ChannelClient,
-  CreateChannelCommand,
 } from '../../proxy/Integration';
 import { EnumService, ValueItem } from '../../service/enum.service';
-import { MatSelectModule } from '@angular/material/select';
 import { JsonPrettyPipe } from '../../service/json-pretty-pipe';
 export interface DialogData {
   label: string;
@@ -53,8 +53,10 @@ export class Dialog implements OnInit {
   readonly data = inject<DialogData>(MAT_DIALOG_DATA);
   startForm: FormGroup;
   apiForm: FormGroup;
+  completeForm: FormGroup;
   attachAPiCall = new AttachChannelPathApiCallingBasedCommand();
   attachPathStart = new AttachChannelPathStartBasedCommand();
+  attachComplete = new AttachChannelPathCompleteBasedCommand();
   channelId: string = '91eff4bb-805e-441a-83be-bfb85e17c11e';
   HttpMethodTypes: ValueItem[] = [];
   AuthHttpTypes: ValueItem[] = [];
@@ -80,6 +82,11 @@ export class Dialog implements OnInit {
       authHttpType: [0, Validators.required],
       authHttpValue: ['', Validators.required],
       httpHeaders: ['', Validators.required],
+    });
+    this.completeForm = this.fb.group({
+      name: ['', Validators.required],
+      completedType: ['', Validators.required],
+      description: [''],
     });
 
     if (this.data.label) {
@@ -118,7 +125,6 @@ export class Dialog implements OnInit {
             error: (err) => {
               console.log(err);
             },
-            complete: () => {},
           });
       }
     } else if (type === 'Task') {
@@ -155,7 +161,6 @@ export class Dialog implements OnInit {
             error: (err) => {
               console.log(err);
             },
-            complete: () => {},
           });
       }
     } else if (type === 'ExclusiveGateway') {
@@ -169,10 +174,31 @@ export class Dialog implements OnInit {
         type: type,
       });
     } else if (type === 'EndEvent') {
-      this.dialogRef.close({
-        valueForm: '',
-        type: type,
+      this.attachComplete.init({
+        name: this.completeForm.get('name')?.value,
+        description: this.completeForm.get('description')?.value,
+        channelId: this.channelId,
+        completedType: 0,
+        beforeChannelPathId: null,
+        commandId: null,
+        actions: null,
       });
+      if (this.completeForm.valid) {
+        this.channelclient
+          .attachPathCompleteBased(this.attachComplete)
+          .subscribe({
+            next: (res) => {
+              this.dialogRef.close({
+                valueForm: this.completeForm.value,
+                type: type,
+                pathId: res.pathId,
+              });
+            },
+            error: (err) => {
+              console.log(err);
+            },
+          });
+      }
     }
   }
 }
