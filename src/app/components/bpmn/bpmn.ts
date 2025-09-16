@@ -92,19 +92,10 @@ export class Bpmn implements AfterViewInit {
   private registerEvents(): void {
     const eventBus = this.bpmnModeler.get<EventBus>('eventBus');
 
-    eventBus.on('connection.added', ({ element }: { element: Connection }) => {
+    eventBus.on('connection.added', ({ element }: { element: any }) => {
       if (element.type === 'bpmn:SequenceFlow') {
         console.log(element.source);
         console.log(element.target);
-        // console.log(
-        //   `✅ مسیر ساخته شد -> 
-        // source: ${element.source?.id} (${this.toReadableType(
-        //     element.source?.
-        //   )})
-        // target: ${element.target?.id} (${this.toReadableType(
-        //     element.target?.type
-        //   )})`
-        // );
       }
     });
 
@@ -112,6 +103,15 @@ export class Bpmn implements AfterViewInit {
       const connection = context.connection;
       if (connection?.type === 'bpmn:SequenceFlow') {
         console.log('✏️ کاربر مسیر رو کشید:', connection);
+        console.log(
+          `✅ مسیر ساخته شد -> 
+        source: ${
+          connection.businessObject.sourceRef?.id
+        } (${this.toReadableType(connection.businessObject.sourceRef.$type)})
+        target: ${
+          connection.businessObject.targetRef?.id
+        } (${this.toReadableType(connection.businessObject.targetRef.$type)})`
+        );
       }
     });
 
