@@ -1,6 +1,7 @@
 export interface Modeling {
   updateLabel(element: any, newLabel: string): void;
   updateProperties(element: any, props: Record<string, any>): void;
+  removeElements?(elements: any[]): void; 
 }
 
 export interface DirectEditing {

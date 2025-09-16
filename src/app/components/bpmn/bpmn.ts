@@ -156,10 +156,14 @@ export class Bpmn implements AfterViewInit {
 
     dialogRef
       .afterClosed()
-      .subscribe((result: { valueForm: any; type: string }) => {
-        if (!result || !element) return;
-
+      .subscribe((result: { valueForm: any; type: string; pathId: string }) => {
         const modeling = this.bpmnModeler.get<Modeling>('modeling');
+        if (!result || !element) {
+          if (element) {
+            modeling.removeElements?.([element]);
+          }
+          return;
+        }
 
         if (result.type === 'StartEvent') {
           modeling.updateLabel(element, result.valueForm['companyName']);
@@ -174,6 +178,7 @@ export class Bpmn implements AfterViewInit {
           name: element.businessObject?.name || '',
           x: element.x,
           y: element.y,
+          pathId: result.pathId,
         };
 
         console.log(

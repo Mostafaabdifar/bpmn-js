@@ -97,7 +97,8 @@ export class Dialog implements OnInit {
   }
 
   onOkClick(): void {
-    if (this.data.typeAction === 'StartEvent') {
+    const type = this.data.typeAction;
+    if (type === 'StartEvent') {
       this.createChannelCommand.init({
         name: this.startForm.get('companyName')?.value,
         description: this.startForm.get('companyDescription')?.value,
@@ -108,14 +109,15 @@ export class Dialog implements OnInit {
             this.beforePathId = res.id!;
             this.dialogRef.close({
               valueForm: this.startForm.value,
-              type: this.data.typeAction,
+              type: type,
+              pathId: res.id,
             });
           },
           error: () => {},
           complete: () => {},
         });
       }
-    } else if (this.data.typeAction === 'Task') {
+    } else if (type === 'Task') {
       this.attachAPiCall.init({
         name: this.apiForm.get('conditionLabel')?.value,
         description: this.apiForm.get('companyDescription')?.value,
@@ -142,13 +144,29 @@ export class Dialog implements OnInit {
             next: (res) => {
               this.dialogRef.close({
                 valueForm: this.apiForm.value,
-                type: this.data.typeAction,
+                type: type,
+                pathId: res.pathId,
               });
             },
             error: () => {},
             complete: () => {},
           });
       }
+    } else if (type === 'ExclusiveGateway') {
+      this.dialogRef.close({
+        valueForm: '',
+        type: type,
+      });
+    } else if (type === 'IntermediateThrowEvent') {
+      this.dialogRef.close({
+        valueForm: '',
+        type: type,
+      });
+    } else if (type === 'EndEvent') {
+      this.dialogRef.close({
+        valueForm: '',
+        type: type,
+      });
     }
   }
 }
