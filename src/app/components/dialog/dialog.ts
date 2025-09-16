@@ -60,6 +60,15 @@ export class Dialog {
     this.apiForm = this.fb.group({
       conditionLabel: ['', Validators.required],
       companyDescription: [''],
+      baseUrl: ['', Validators.required],
+      path: ['', Validators.required],
+      httpMethodType: [0, Validators.required],
+      timeout: [0, Validators.required],
+      query: ['', Validators.required],
+      body: ['', Validators.required],
+      authHttpType: [0, Validators.required],
+      authHttpValue: ['', Validators.required],
+      httpHeaders: ['', Validators.required],
     });
 
     if (this.data.label) {
@@ -92,6 +101,19 @@ export class Dialog {
         description: this.apiForm.get('companyDescription')?.value,
         beforeChannelPathId: this.beforePathId,
         channelId: this.channelId,
+        commandId: null,
+        actions: null,
+        api: {
+          baseUrl: this.apiForm.get('baseUrl')?.value,
+          path: this.apiForm.get('path')?.value,
+          httpMethodType: this.apiForm.get('httpMethodType')?.value,
+          timeout: this.apiForm.get('timeout')?.value,
+          query: this.apiForm.get('query')?.value,
+          body: this.apiForm.get('body')?.value,
+          authHttpType: this.apiForm.get('authHttpType')?.value,
+          authHttpValue: this.apiForm.get('authHttpValue')?.value,
+          httpHeaders: this.apiForm.get('httpHeaders')?.value,
+        },
       });
       if (this.apiForm.valid) {
         this.channelclient

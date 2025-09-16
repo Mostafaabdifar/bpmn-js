@@ -48,7 +48,7 @@ export class Bpmn implements AfterViewInit {
   @ViewChild('properties', { static: true }) private propertiesRef!: ElementRef;
 
   private bpmnModeler!: BpmnModeler;
-  selectedShape: Shape | Connection | undefined;
+  selectedShape: Shape | undefined;
   createChannelCommand = new CreateChannelCommand();
 
   constructor(
@@ -92,40 +92,58 @@ export class Bpmn implements AfterViewInit {
   private registerEvents(): void {
     const eventBus = this.bpmnModeler.get<EventBus>('eventBus');
 
-    eventBus.on(
-      'shape.added',
-      ({ element }: { element: Shape | Connection }) => {
-        if (!element?.type) return;
-
-        this.selectedShape = element;
-
-        if (
-          element.type === 'bpmn:Task' ||
-          element.type === 'bpmn:SequenceFlow' ||
-          element.type === 'bpmn:StartEvent'
-        ) {
-          const directEditing =
-            this.bpmnModeler.get<DirectEditing>('directEditing');
-          directEditing.cancel();
-          this.openDialog(
-            element.type,
-            this.selectedShape?.businessObject.name
-          );
-        }
-
-        if (element.type === 'bpmn:SequenceFlow') {
-          console.log(
-            `source: ${
-              element.businessObject.sourceRef.id.split('_')[0]
-            } - ${this.toReadableType(
-              element.businessObject.sourceRef.$type
-            )} -> target: ${
-              element.businessObject.targetRef.id.split('_')[0]
-            } - ${this.toReadableType(element.businessObject.targetRef.$type)}`
-          );
-        }
+    eventBus.on('connection.added', ({ element }: { element: Connection }) => {
+      if (element.type === 'bpmn:SequenceFlow') {
+        console.log(element.source);
+        console.log(element.target);
+        // console.log(
+        //   `✅ مسیر ساخته شد -> 
+        // source: ${element.source?.id} (${this.toReadableType(
+        //     element.source?.
+        //   )})
+        // target: ${element.target?.id} (${this.toReadableType(
+        //     element.target?.type
+        //   )})`
+        // );
       }
-    );
+    });
+
+    eventBus.on('connect.end', ({ context }: any) => {
+      const connection = context.connection;
+      if (connection?.type === 'bpmn:SequenceFlow') {
+        console.log('✏️ کاربر مسیر رو کشید:', connection);
+      }
+    });
+
+    eventBus.on('shape.added', ({ element }: { element: Shape }) => {
+      console.log(element);
+      if (!element?.type) return;
+
+      this.selectedShape = element;
+
+      if (
+        element.type === 'bpmn:Task' ||
+        element.type === 'bpmn:SequenceFlow' ||
+        element.type === 'bpmn:StartEvent'
+      ) {
+        const directEditing =
+          this.bpmnModeler.get<DirectEditing>('directEditing');
+        directEditing.cancel();
+        this.openDialog(element.type, this.selectedShape?.businessObject.name);
+      }
+
+      if (element.type === 'bpmn:SequenceFlow') {
+        console.log(
+          `source: ${
+            element.businessObject.sourceRef.id.split('_')[0]
+          } - ${this.toReadableType(
+            element.businessObject.sourceRef.$type
+          )} -> target: ${
+            element.businessObject.targetRef.id.split('_')[0]
+          } - ${this.toReadableType(element.businessObject.targetRef.$type)}`
+        );
+      }
+    });
   }
 
   private openDialog(type: string, label?: any): void {
@@ -147,7 +165,7 @@ export class Bpmn implements AfterViewInit {
         if (result.type === 'Task') {
           modeling.updateLabel(
             this.selectedShape,
-            result.valueForm['conditionLabel'] || 'Default Note'
+            result.valueForm['conditionLabel']
           );
         }
       });

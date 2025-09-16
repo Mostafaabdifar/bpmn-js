@@ -2,7 +2,7 @@
 <mat-dialog-content>
   @if (data.typeAction === "StartEvent") {
   <form [formGroup]="startForm">
-    <mat-form-field style="width: 100%">
+    <mat-form-field class="w-full">
       <mat-label>Company Name</mat-label>
       <input
         type="text"
@@ -15,23 +15,116 @@
       }
     </mat-form-field>
 
-    <mat-form-field style="width: 100%">
+    <mat-form-field class="w-full">
       <mat-label>Company Description</mat-label>
       <textarea matInput formControlName="companyDescription"></textarea>
     </mat-form-field>
   </form>
   } @if (data.typeAction === "Task") {
   <form [formGroup]="apiForm">
-    <mat-form-field style="width: 100%">
+    <mat-form-field class="w-full">
       <mat-label>Condition Name</mat-label>
       <input
         type="text"
         matInput
         formControlName="conditionLabel"
-        placeholder="Condition Name"
+        placeholder="Condition"
       />
       @if (apiForm.get('conditionLabel')?.hasError('required')) {
       <mat-error>Condition is <strong>required</strong></mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field class="w-full">
+      <mat-label>Base Url</mat-label>
+      <input
+        type="text"
+        matInput
+        formControlName="baseUrl"
+        placeholder="Base Url"
+      />
+      @if (apiForm.get('conditionLabel')?.hasError('required')) {
+      <mat-error>Base Url is <strong>required</strong></mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field class="w-full">
+      <mat-label>Path</mat-label>
+      <input type="text" matInput formControlName="path" placeholder="Path" />
+      @if (apiForm.get('conditionLabel')?.hasError('required')) {
+      <mat-error>Path is <strong>required</strong></mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field class="w-full">
+      <mat-label>Http Method Type</mat-label>
+      <input
+        type="text"
+        matInput
+        formControlName="httpMethodType"
+        placeholder="Http Method Type"
+      />
+      @if (apiForm.get('conditionLabel')?.hasError('required')) {
+      <mat-error>Http Method Type is <strong>required</strong></mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field class="w-full">
+      <mat-label>Timeout</mat-label>
+      <input
+        type="number"
+        matInput
+        formControlName="timeout"
+        placeholder="Timeout"
+      />
+      @if (apiForm.get('conditionLabel')?.hasError('required')) {
+      <mat-error>Timeout is <strong>required</strong></mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field class="w-full">
+      <mat-label>Query</mat-label>
+      <input type="text" matInput formControlName="query" placeholder="Query" />
+      @if (apiForm.get('conditionLabel')?.hasError('required')) {
+      <mat-error>Query is <strong>required</strong></mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field class="w-full">
+      <mat-label>Body</mat-label>
+      <input type="text" matInput formControlName="body" placeholder="Body" />
+      @if (apiForm.get('conditionLabel')?.hasError('required')) {
+      <mat-error>Body is <strong>required</strong></mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field class="w-full">
+      <mat-label>Auth Http Type</mat-label>
+      <input
+        type="text"
+        matInput
+        formControlName="authHttpType"
+        placeholder="Auth Http Type"
+      />
+      @if (apiForm.get('conditionLabel')?.hasError('required')) {
+      <mat-error>Auth Http Type is <strong>required</strong></mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field class="w-full">
+      <mat-label>Auth Http Value</mat-label>
+      <input
+        type="text"
+        matInput
+        formControlName="authHttpValue"
+        placeholder="Auth Http Value"
+      />
+      @if (apiForm.get('conditionLabel')?.hasError('required')) {
+      <mat-error>Auth Http Value is <strong>required</strong></mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field class="w-full">
+      <mat-label>Http Headers</mat-label>
+      <input
+        type="text"
+        matInput
+        formControlName="httpHeaders"
+        placeholder="Http Headers"
+      />
+      @if (apiForm.get('conditionLabel')?.hasError('required')) {
+      <mat-error>Http Headers is <strong>required</strong></mat-error>
       }
     </mat-form-field>
   </form>
@@ -39,6 +132,12 @@
   <p>{{ data.typeAction }} Dialog</p>
 </mat-dialog-content>
 <mat-dialog-actions>
-  <button [disabled]="startForm.invalid && apiForm.invalid" matButton (click)="onOkClick()">Ok</button>
+  <button
+    [disabled]="startForm.invalid && apiForm.invalid"
+    matButton
+    (click)="onOkClick()"
+  >
+    Ok
+  </button>
   <button matButton mat-dialog-close>Cancel</button>
 </mat-dialog-actions>
