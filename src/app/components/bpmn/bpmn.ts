@@ -10,7 +10,10 @@ import BpmnModeler from 'camunda-bpmn-js/lib/base/Modeler';
 import * as camundaModdleDescriptor from 'camunda-bpmn-moddle/resources/camunda.json';
 import Canvas from 'diagram-js/lib/core/Canvas';
 import EventBus from 'diagram-js/lib/core/EventBus';
-import { CreateChannelCommand } from '../../proxy/Integration';
+import {
+  ChannelClient,
+  SetNextChannelPathCommand,
+} from '../../proxy/Integration';
 import { Dialog } from '../dialog/dialog';
 import { DirectEditing, Modeling } from './custom/bpmn-model';
 import CustomContextPad from './custom/customContextPad';
@@ -43,7 +46,8 @@ export class Bpmn implements AfterViewInit {
 
   private bpmnModeler!: BpmnModeler;
   selectedShape: Shape | undefined;
-  createChannelCommand = new CreateChannelCommand();
+  setNextChannelPathCommand = new SetNextChannelPathCommand();
+  channelId: string = '91eff4bb-805e-441a-83be-bfb85e17c11e';
 
   diagramModel: {
     shapes: Record<string, any>;
@@ -53,7 +57,10 @@ export class Bpmn implements AfterViewInit {
     connections: {},
   };
 
-  constructor(private DialogService: MatDialog) {}
+  constructor(
+    private DialogService: MatDialog,
+    private channelclient: ChannelClient
+  ) {}
 
   ngAfterViewInit(): void {
     this.initializeModeler();
@@ -117,21 +124,45 @@ export class Bpmn implements AfterViewInit {
       };
 
       console.log(
-        '✅ Connection اضافه شد:',
+        'Connection اضافه شد:',
         this.diagramModel.connections[element.id]
       );
+
+      this.setNextChannelPathCommand.init({
+        commandId: null,
+        channelId: this.channelId,
+        channelPathId:
+          this.diagramModel.shapes[
+            this.diagramModel.connections[element.id]['source']
+          ].pathId,
+        resolverId: null,
+        nextChannelPathId:
+          this.diagramModel.shapes[
+            this.diagramModel.connections[element.id]['target']
+          ].pathId,
+      });
+      this.channelclient
+        .setNextChannelPath(this.setNextChannelPathCommand)
+        .subscribe({
+          next: (res) => {
+            console.log(res);
+          },
+          error: (err) => {
+            console.log(err);
+          },
+        });
     });
 
     eventBus.on('shape.removed', ({ element }: { element: Shape }) => {
       delete this.diagramModel.shapes[element.id];
-      console.log(`🗑️ Shape حذف شد: ${element.id}`);
+      console.log(`Shape حذف شد: ${element.id}`);
     });
 
     eventBus.on(
       'connection.removed',
       ({ element }: { element: Connection }) => {
         delete this.diagramModel.connections[element.id];
-        console.log(`🗑️ Connection حذف شد: ${element.id}`);
+        console.log(`Connection حذف شد: ${element.id}`);
       }
     );
 
@@ -143,7 +174,7 @@ export class Bpmn implements AfterViewInit {
             this.diagramModel.shapes[element.id].name =
               element.businessObject?.name || '';
           }
-          console.log(`✏️ Element آپدیت شد: ${element.id}`, this.diagramModel);
+          console.log(`Element آپدیت شد: ${element.id}`, this.diagramModel);
         }
       }
     );
@@ -158,6 +189,7 @@ export class Bpmn implements AfterViewInit {
       .afterClosed()
       .subscribe((result: { valueForm: any; type: string; pathId: string }) => {
         const modeling = this.bpmnModeler.get<Modeling>('modeling');
+
         if (!result || !element) {
           if (element) {
             modeling.removeElements?.([element]);
@@ -182,7 +214,7 @@ export class Bpmn implements AfterViewInit {
         };
 
         console.log(
-          '📌 Shape در مدل ذخیره شد:',
+          'Shape در مدل ذخیره شد:',
           this.diagramModel.shapes[element.id]
         );
       });

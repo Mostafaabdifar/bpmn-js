@@ -19,6 +19,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import {
   AttachChannelPathApiCallingBasedCommand,
+  AttachChannelPathStartBasedCommand,
   ChannelClient,
   CreateChannelCommand,
 } from '../../proxy/Integration';
@@ -52,9 +53,8 @@ export class Dialog implements OnInit {
   readonly data = inject<DialogData>(MAT_DIALOG_DATA);
   startForm: FormGroup;
   apiForm: FormGroup;
-  createChannelCommand = new CreateChannelCommand();
   attachAPiCall = new AttachChannelPathApiCallingBasedCommand();
-  beforePathId: string = '';
+  attachPathStart = new AttachChannelPathStartBasedCommand();
   channelId: string = '91eff4bb-805e-441a-83be-bfb85e17c11e';
   HttpMethodTypes: ValueItem[] = [];
   AuthHttpTypes: ValueItem[] = [];
@@ -99,29 +99,33 @@ export class Dialog implements OnInit {
   onOkClick(): void {
     const type = this.data.typeAction;
     if (type === 'StartEvent') {
-      this.createChannelCommand.init({
+      this.attachPathStart.init({
         name: this.startForm.get('companyName')?.value,
         description: this.startForm.get('companyDescription')?.value,
+        channelId: this.channelId,
       });
       if (this.startForm.valid) {
-        this.channelclient.create(this.createChannelCommand).subscribe({
-          next: (res) => {
-            this.beforePathId = res.id!;
-            this.dialogRef.close({
-              valueForm: this.startForm.value,
-              type: type,
-              pathId: res.id,
-            });
-          },
-          error: () => {},
-          complete: () => {},
-        });
+        this.channelclient
+          .attachPathStartBased(this.attachPathStart)
+          .subscribe({
+            next: (res) => {
+              this.dialogRef.close({
+                valueForm: this.startForm.value,
+                type: type,
+                pathId: res.pathId,
+              });
+            },
+            error: (err) => {
+              console.log(err);
+            },
+            complete: () => {},
+          });
       }
     } else if (type === 'Task') {
       this.attachAPiCall.init({
         name: this.apiForm.get('conditionLabel')?.value,
         description: this.apiForm.get('companyDescription')?.value,
-        beforeChannelPathId: this.beforePathId,
+        beforeChannelPathId: null,
         channelId: this.channelId,
         commandId: null,
         actions: null,
@@ -148,7 +152,9 @@ export class Dialog implements OnInit {
                 pathId: res.pathId,
               });
             },
-            error: () => {},
+            error: (err) => {
+              console.log(err);
+            },
             complete: () => {},
           });
       }
