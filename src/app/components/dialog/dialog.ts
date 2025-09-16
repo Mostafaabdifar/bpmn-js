@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -22,6 +22,8 @@ import {
   ChannelClient,
   CreateChannelCommand,
 } from '../../proxy/Integration';
+import { EnumService, ValueItem } from '../../service/enum.service';
+import { MatSelectModule } from '@angular/material/select';
 export interface DialogData {
   label: string;
   typeAction: string;
@@ -38,11 +40,12 @@ export interface DialogData {
     FormsModule,
     MatFormFieldModule,
     ReactiveFormsModule,
+    MatSelectModule
   ],
   templateUrl: './dialog.html',
   styleUrl: './dialog.scss',
 })
-export class Dialog {
+export class Dialog implements OnInit {
   readonly dialogRef = inject(MatDialogRef<Dialog>);
   readonly data = inject<DialogData>(MAT_DIALOG_DATA);
   startForm: FormGroup;
@@ -51,8 +54,14 @@ export class Dialog {
   attachAPiCall = new AttachChannelPathApiCallingBasedCommand();
   beforePathId: string = '';
   channelId: string = '91eff4bb-805e-441a-83be-bfb85e17c11e';
+  HttpMethodTypes: ValueItem[] = [];
+  AuthHttpTypes: ValueItem[] = [];
 
-  constructor(private fb: FormBuilder, private channelclient: ChannelClient) {
+  constructor(
+    private fb: FormBuilder,
+    private channelclient: ChannelClient,
+    private enumService: EnumService
+  ) {
     this.startForm = this.fb.group({
       companyName: ['', Validators.required],
       companyDescription: [''],
@@ -74,6 +83,15 @@ export class Dialog {
     if (this.data.label) {
       this.startForm.get('companyName')?.setValue(this.data.label);
     }
+  }
+
+  ngOnInit(): void {
+    this.enumService.dataSubject.subscribe((data) => {
+      this.HttpMethodTypes =
+        data.find((item) => item.name === 'HttpMethodType')?.valueItems ?? [];
+      this.AuthHttpTypes =
+        data.find((item) => item.name === 'AuthHttpType')?.valueItems ?? [];
+    });
   }
 
   onOkClick(): void {

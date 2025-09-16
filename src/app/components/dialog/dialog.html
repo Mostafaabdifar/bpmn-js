@@ -55,15 +55,11 @@
     </mat-form-field>
     <mat-form-field class="w-full">
       <mat-label>Http Method Type</mat-label>
-      <input
-        type="text"
-        matInput
-        formControlName="httpMethodType"
-        placeholder="Http Method Type"
-      />
-      @if (apiForm.get('conditionLabel')?.hasError('required')) {
-      <mat-error>Http Method Type is <strong>required</strong></mat-error>
-      }
+      <mat-select formControlName="httpMethodType">
+        @for (item of HttpMethodTypes; track item) {
+        <mat-option [value]="item.value">{{ item.title }}</mat-option>
+        }
+      </mat-select>
     </mat-form-field>
     <mat-form-field class="w-full">
       <mat-label>Timeout</mat-label>
@@ -93,15 +89,11 @@
     </mat-form-field>
     <mat-form-field class="w-full">
       <mat-label>Auth Http Type</mat-label>
-      <input
-        type="text"
-        matInput
-        formControlName="authHttpType"
-        placeholder="Auth Http Type"
-      />
-      @if (apiForm.get('conditionLabel')?.hasError('required')) {
-      <mat-error>Auth Http Type is <strong>required</strong></mat-error>
-      }
+      <mat-select formControlName="authHttpType">
+        @for (item of AuthHttpTypes; track item) {
+        <mat-option [value]="item.value">{{ item.title }}</mat-option>
+        }
+      </mat-select>
     </mat-form-field>
     <mat-form-field class="w-full">
       <mat-label>Auth Http Value</mat-label>
@@ -132,12 +124,7 @@
   <p>{{ data.typeAction }} Dialog</p>
 </mat-dialog-content>
 <mat-dialog-actions>
-  <button
-    [disabled]="startForm.invalid && apiForm.invalid"
-    matButton
-    (click)="onOkClick()"
-  >
-    Ok
-  </button>
+  <button matButton (click)="onOkClick()">Ok</button>
   <button matButton mat-dialog-close>Cancel</button>
 </mat-dialog-actions>
+<!-- [disabled]="startForm.invalid && apiForm.invalid" -->
