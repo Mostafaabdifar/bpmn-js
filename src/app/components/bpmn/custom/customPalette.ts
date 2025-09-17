@@ -12,6 +12,7 @@ export default class CustomPalette {
   private originalGetPaletteEntries: any;
 
   private static readonly BLOCKED_ENTRIES = [
+    'create.intermediate-event',
     'create.subprocess-expanded',
     'create.data-object',
     'create.data-store',
@@ -62,6 +63,19 @@ export default class CustomPalette {
       };
     }
 
+    function createEndEvent() {
+      return function (event: any) {
+        const businessObject = bpmnFactory.create('bpmn:EndEvent');
+        businessObject.id = `Custom_End_${businessObject.id}`;
+        const shape = elementFactory.createShape({
+          type: 'bpmn:EndEvent',
+          businessObject,
+        });
+
+        create.start(event, shape);
+      };
+    }
+
     let entries: Record<string, any> = this.originalGetPaletteEntries
       ? this.originalGetPaletteEntries()
       : {};
@@ -88,11 +102,6 @@ export default class CustomPalette {
         ...entries['create.task'],
         title: 'فراخوانی API',
       },
-      'create.intermediate-event': {
-        ...entries['create.intermediate-event'],
-        title: 'مسیر خطا',
-        className: 'entry bpmn-icon-intermediate-event-none red',
-      },
     });
     entries['create.high-task'] = {
       group: 'activity',
@@ -101,6 +110,15 @@ export default class CustomPalette {
       action: {
         dragstart: createTask(SUITABILITY_SCORE.HIGH),
         click: createTask(SUITABILITY_SCORE.HIGH),
+      },
+    };
+    entries['create.custom-endevent'] = {
+      group: 'event',
+      className: 'bpmn-icon-end-event-none red',
+      title: translate('مسیر خطا'),
+      action: {
+        dragstart: createEndEvent(),
+        click: createEndEvent(),
       },
     };
 

@@ -101,6 +101,7 @@ export class Bpmn implements AfterViewInit {
     const eventBus = this.bpmnModeler.get<EventBus>('eventBus');
 
     eventBus.on('shape.added', ({ element }: { element: Shape }) => {
+      console.log(element);
       if (!element?.id || !element.type) return;
 
       if (element.type === 'label' || element.type === 'bpmn:TextAnnotation') {
@@ -186,9 +187,7 @@ export class Bpmn implements AfterViewInit {
   private openDialog(type: string, label?: any, element?: Shape): void {
     const dialogRef = this.DialogService.open(Dialog, {
       data: {
-        typeAction: element?.id.includes('Custom')
-          ? 'CustomTask'
-          : this.toReadableType(type),
+        typeAction: this.getTypeAction(element, type),
         label,
       },
     });
@@ -221,6 +220,12 @@ export class Bpmn implements AfterViewInit {
           this.diagramModel.shapes[element.id]
         );
       });
+  }
+
+  private getTypeAction(element: any, type: string): string {
+    if (element?.id?.includes('Custom_Activity')) return 'CustomTask';
+    if (element?.id?.includes('Custom_End_Event')) return 'CustomEndEvent';
+    return this.toReadableType(type);
   }
 
   private toReadableType(type: string): string {

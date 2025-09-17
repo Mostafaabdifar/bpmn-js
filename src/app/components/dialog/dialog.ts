@@ -176,7 +176,7 @@ export class Dialog implements OnInit {
         valueForm: '',
         type: type,
       });
-    } else if (type === 'IntermediateThrowEvent') {
+    } else if (type === 'CustomEndEvent') {
       this.attachComplete.init({
         name: this.completeForm.get('name')?.value,
         description: this.completeForm.get('description')?.value,
