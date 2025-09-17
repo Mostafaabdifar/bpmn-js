@@ -3,35 +3,35 @@
   @if (data.typeAction === "StartEvent") {
   <form [formGroup]="startForm">
     <mat-form-field class="w-full">
-      <mat-label>Company Name</mat-label>
+      <mat-label>Name</mat-label>
       <input
         type="text"
         matInput
-        formControlName="companyName"
-        placeholder="Company Name"
+        formControlName="name"
+        placeholder="Event Name"
       />
-      @if (startForm.get('companyName')?.hasError('required')) {
-      <mat-error>Company name is <strong>required</strong></mat-error>
+      @if (startForm.get('name')?.hasError('required')) {
+      <mat-error>name is <strong>required</strong></mat-error>
       }
     </mat-form-field>
 
     <mat-form-field class="w-full">
-      <mat-label>Company Description</mat-label>
-      <textarea matInput formControlName="companyDescription"></textarea>
+      <mat-label>Description</mat-label>
+      <textarea matInput formControlName="description"></textarea>
     </mat-form-field>
   </form>
   } @else if (data.typeAction === "Task") {
   <form [formGroup]="apiForm">
     <mat-form-field class="w-full">
-      <mat-label>Condition Name</mat-label>
+      <mat-label>Name</mat-label>
       <input
         type="text"
         matInput
-        formControlName="conditionLabel"
-        placeholder="Condition"
+        formControlName="name"
+        placeholder="Condition Name"
       />
-      @if (apiForm.get('conditionLabel')?.hasError('required')) {
-      <mat-error>Condition is <strong>required</strong></mat-error>
+      @if (apiForm.get('name')?.hasError('required')) {
+      <mat-error>Name is <strong>required</strong></mat-error>
       }
     </mat-form-field>
     <mat-form-field class="w-full">
@@ -130,7 +130,8 @@
       }
     </mat-form-field>
   </form>
-  } @else if (data.typeAction === "EndEvent") {
+  } @else if (data.typeAction === "EndEvent" || data.typeAction ===
+  "IntermediateThrowEvent") {
   <form [formGroup]="completeForm">
     <mat-form-field class="w-full">
       <mat-label>Name</mat-label>
@@ -138,15 +139,6 @@
       @if (apiForm.get('name')?.hasError('required')) {
       <mat-error>name is <strong>required</strong></mat-error>
       }
-    </mat-form-field>
-
-    <mat-form-field class="w-full">
-      <mat-label>Completed Type</mat-label>
-      <mat-select formControlName="completedType">
-        @for (item of HttpMethodTypes; track item) {
-        <mat-option [value]="item.value">{{ item.title }}</mat-option>
-        }
-      </mat-select>
     </mat-form-field>
 
     <mat-form-field class="w-full">

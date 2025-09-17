@@ -61,8 +61,10 @@ export class Dialog implements OnInit {
   attachComplete = new AttachChannelPathCompleteBasedCommand();
   attachMapper = new AttachChannelPathMapperBasedCommand();
   channelId: string = '91eff4bb-805e-441a-83be-bfb85e17c11e';
+  mappingId: string = '1d539f32-9210-4133-a8c5-e364388b54dd';
   HttpMethodTypes: ValueItem[] = [];
   AuthHttpTypes: ValueItem[] = [];
+  ChannelPathCompletedTypes: ValueItem[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -70,12 +72,12 @@ export class Dialog implements OnInit {
     private enumService: EnumService
   ) {
     this.startForm = this.fb.group({
-      companyName: ['', Validators.required],
-      companyDescription: [''],
+      name: ['', Validators.required],
+      description: [''],
     });
     this.apiForm = this.fb.group({
-      conditionLabel: ['', Validators.required],
-      companyDescription: [''],
+      name: ['', Validators.required],
+      description: [''],
       baseUrl: ['', Validators.required],
       path: ['', Validators.required],
       httpMethodType: [0, Validators.required],
@@ -88,7 +90,6 @@ export class Dialog implements OnInit {
     });
     this.completeForm = this.fb.group({
       name: ['', Validators.required],
-      completedType: ['', Validators.required],
       description: [''],
     });
     this.mapperForm = this.fb.group({
@@ -104,6 +105,9 @@ export class Dialog implements OnInit {
         data.find((item) => item.name === 'HttpMethodType')?.valueItems ?? [];
       this.AuthHttpTypes =
         data.find((item) => item.name === 'AuthHttpType')?.valueItems ?? [];
+      this.ChannelPathCompletedTypes =
+        data.find((item) => item.name === 'ChannelPathCompletedType')
+          ?.valueItems ?? [];
     });
   }
 
@@ -173,14 +177,37 @@ export class Dialog implements OnInit {
         type: type,
       });
     } else if (type === 'IntermediateThrowEvent') {
-      this.dialogRef.close({
-        valueForm: '',
-        type: type,
+      this.attachComplete.init({
+        name: this.completeForm.get('name')?.value,
+        description: this.completeForm.get('description')?.value,
+        completedType: this.ChannelPathCompletedTypes.find(
+          (item) => item.key === 'Failed'
+        )?.value, //Failed process
+        channelId: this.channelId,
+        beforeChannelPathId: null,
+        commandId: null,
+        actions: null,
       });
+      if (this.completeForm.valid) {
+        this.channelclient
+          .attachPathCompleteBased(this.attachComplete)
+          .subscribe({
+            next: (res) => {
+              this.dialogRef.close({
+                valueForm: this.completeForm.value,
+                type: type,
+                pathId: res.pathId,
+              });
+            },
+            error: (err) => {
+              console.log(err);
+            },
+          });
+      }
     } else if (type === 'CustomTask') {
       this.attachMapper.init({
         name: this.mapperForm.get('name')?.value,
-        messageMappingId: this.mapperForm.get('messageMapping')?.value,
+        messageMappingId: this.mappingId,
         description: this.mapperForm.get('description')?.value,
         channelId: this.channelId,
         beforeChannelPathId: null,
@@ -205,8 +232,10 @@ export class Dialog implements OnInit {
       this.attachComplete.init({
         name: this.completeForm.get('name')?.value,
         description: this.completeForm.get('description')?.value,
+        completedType: this.ChannelPathCompletedTypes.find(
+          (item) => item.key === 'Successed'
+        )?.value, //Successed process
         channelId: this.channelId,
-        completedType: 0,
         beforeChannelPathId: null,
         commandId: null,
         actions: null,

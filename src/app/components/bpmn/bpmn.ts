@@ -19,6 +19,7 @@ import { DirectEditing, Modeling } from './custom/bpmn-model';
 import CustomContextPad from './custom/customContextPad';
 import CustomPalette from './custom/customPalette';
 import CustomRenderer from './custom/customRenderer';
+import { MatButton } from '@angular/material/button';
 
 const DEFAULT_DIAGRAM = `<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -38,6 +39,7 @@ const DEFAULT_DIAGRAM = `<?xml version="1.0" encoding="UTF-8"?>
   selector: 'app-bpmm',
   templateUrl: './bpmn.html',
   styleUrl: './bpmn.scss',
+  imports: [MatButton],
   standalone: true,
 })
 export class Bpmn implements AfterViewInit {
@@ -203,15 +205,7 @@ export class Bpmn implements AfterViewInit {
           return;
         }
 
-        if (result.type === 'StartEvent') {
-          modeling.updateLabel(element, result.valueForm['companyName']);
-        }
-        if (result.type === 'Task') {
-          modeling.updateLabel(element, result.valueForm['conditionLabel']);
-        }
-        if (result.type === 'EndEvent') {
-          modeling.updateLabel(element, result.valueForm['name']);
-        }
+        modeling.updateLabel(element, result.valueForm['name']);
 
         this.diagramModel.shapes[element.id] = {
           id: element.id,
