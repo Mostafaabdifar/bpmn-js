@@ -1,0 +1,76 @@
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import {
+  BehaviorSubject,
+  combineLatest,
+  Observable,
+  of,
+  shareReplay,
+  tap,
+} from 'rxjs';
+import { environment } from '../environments/environment';
+import { ChannelClient, MappingClient } from '../proxy/Integration';
+export interface IEnumItem {
+  name: string;
+  title: string;
+  filterName: string | null;
+  valueItems: ValueItem[];
+}
+
+export interface ValueItem {
+  key: string;
+  title: string;
+  value: number;
+  icon: string | null;
+}
+
+@Injectable({
+  providedIn: 'root',
+})
+export class CoreService {
+  dataSubject = new BehaviorSubject<IEnumItem[]>([]);
+  private dataListCache$: Observable<any> | null = null;
+
+  constructor(
+    private http: HttpClient,
+    private channelClient: ChannelClient,
+    private mappingClient: MappingClient
+  ) {}
+
+  fetchData(): Observable<IEnumItem[]> {
+    return this.http
+      .get<IEnumItem[]>(`${environment.enumUrl}/app.startup.information`)
+      .pipe(
+        tap((response) => {
+          this.dataSubject.next(response);
+        })
+      );
+  }
+
+  getDataList(channelId: string): Observable<any> {
+    if (!this.dataListCache$) {
+      this.dataListCache$ = combineLatest({
+        mappings: this.mappingClient.getMessageMappingList(
+          undefined,
+          undefined,
+          undefined
+        ),
+        messageWithMapping: this.mappingClient.getMessageWithMappingList(
+          undefined,
+          undefined,
+          undefined
+        ),
+        channel: this.channelClient.getById(channelId),
+      }).pipe(shareReplay(1));
+    }
+    return this.dataListCache$;
+  }
+
+  clearEnumCache(): void {
+    this.dataSubject.next([]);
+  }
+
+  clearDataListCache(): void {
+    this.dataListCache$ = null;
+  }
+}

@@ -18,14 +18,19 @@ import {
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { Observable } from 'rxjs';
 import {
   AttachChannelPathApiCallingBasedCommand,
   AttachChannelPathCompleteBasedCommand,
+  AttachChannelPathConditionBasedCommand,
   AttachChannelPathMapperBasedCommand,
   AttachChannelPathStartBasedCommand,
   ChannelClient,
+  ChannelPathItem,
+  MessageMappingDto,
+  MessageWithMappingDto,
 } from '../../proxy/Integration';
-import { EnumService, ValueItem } from '../../service/enum.service';
+import { CoreService, ValueItem } from '../../service/core.service';
 import { JsonPrettyPipe } from '../../service/json-pretty-pipe';
 export interface DialogData {
   label: string;
@@ -52,24 +57,36 @@ export interface DialogData {
 export class Dialog implements OnInit {
   readonly dialogRef = inject(MatDialogRef<Dialog>);
   readonly data = inject<DialogData>(MAT_DIALOG_DATA);
+  cache$: Observable<any> | null = null;
   startForm: FormGroup;
   apiForm: FormGroup;
   completeForm: FormGroup;
   mapperForm: FormGroup;
+  conditionForm: FormGroup;
   attachAPiCall = new AttachChannelPathApiCallingBasedCommand();
   attachPathStart = new AttachChannelPathStartBasedCommand();
   attachComplete = new AttachChannelPathCompleteBasedCommand();
   attachMapper = new AttachChannelPathMapperBasedCommand();
+  attachCondition = new AttachChannelPathConditionBasedCommand();
   channelId: string = '91eff4bb-805e-441a-83be-bfb85e17c11e';
   mappingId: string = '1d539f32-9210-4133-a8c5-e364388b54dd';
   HttpMethodTypes: ValueItem[] = [];
   AuthHttpTypes: ValueItem[] = [];
   ChannelPathCompletedTypes: ValueItem[] = [];
+  ConditionRelationshipTypes: ValueItem[] = [];
+  ConditionResolverTypes: ValueItem[] = [];
+  conditionValue!: number;
+  mappingList: MessageMappingDto[] = [];
+  channelPaths: ChannelPathItem[] = [];
+  messageWithMappingList: MessageWithMappingDto[] = [];
+  statusList = [
+    200, 201, 202, 204, 400, 403, 404, 405, 500, 501, 502, 503, 504,
+  ];
 
   constructor(
     private fb: FormBuilder,
-    private channelclient: ChannelClient,
-    private enumService: EnumService
+    private channelClient: ChannelClient,
+    private coreService: CoreService
   ) {
     this.startForm = this.fb.group({
       name: ['', Validators.required],
@@ -97,10 +114,26 @@ export class Dialog implements OnInit {
       messageMapping: ['', Validators.required],
       description: [''],
     });
+    this.conditionForm = this.fb.group({
+      name: ['', Validators.required],
+      conditionResolverType: ['', Validators.required],
+      mappingItem: ['', Validators.required],
+      statusItemList: [[''], Validators.required],
+      statusItem: ['', Validators.required],
+      channelPath: ['', Validators.required],
+      statusName: ['', Validators.required],
+      description: [''],
+    });
+
+    this.conditionForm
+      .get('conditionResolverType')
+      ?.valueChanges.subscribe((value) => {
+        this.conditionValue = value;
+      });
   }
 
   ngOnInit(): void {
-    this.enumService.dataSubject.subscribe((data) => {
+    this.coreService.dataSubject.subscribe((data) => {
       this.HttpMethodTypes =
         data.find((item) => item.name === 'HttpMethodType')?.valueItems ?? [];
       this.AuthHttpTypes =
@@ -108,6 +141,18 @@ export class Dialog implements OnInit {
       this.ChannelPathCompletedTypes =
         data.find((item) => item.name === 'ChannelPathCompletedType')
           ?.valueItems ?? [];
+      this.ConditionResolverTypes =
+        data.find((item) => item.name === 'ConditionResolverType')
+          ?.valueItems ?? [];
+      this.ConditionRelationshipTypes =
+        data.find((item) => item.name === 'ConditionRelationshipType')
+          ?.valueItems ?? [];
+    });
+
+    this.coreService.getDataList(this.channelId).subscribe((response) => {
+      this.mappingList = response.mappings.items!;
+      this.channelPaths = response.channel.paths!;
+      this.messageWithMappingList = response.messageWithMapping.items!;
     });
   }
 
@@ -120,7 +165,7 @@ export class Dialog implements OnInit {
         channelId: this.channelId,
       });
       if (this.startForm.valid) {
-        this.channelclient
+        this.channelClient
           .attachPathStartBased(this.attachPathStart)
           .subscribe({
             next: (res) => {
@@ -156,7 +201,7 @@ export class Dialog implements OnInit {
         },
       });
       if (this.apiForm.valid) {
-        this.channelclient
+        this.channelClient
           .attachPathApiCallingBased(this.attachAPiCall)
           .subscribe({
             next: (res) => {
@@ -172,6 +217,47 @@ export class Dialog implements OnInit {
           });
       }
     } else if (type === 'ExclusiveGateway') {
+      this.attachCondition.init({
+        name: this.conditionForm.get('name')?.value,
+        description: this.conditionForm.get('description')?.value,
+        beforeChannelPathId: null,
+        channelId: this.channelId,
+        commandId: null,
+        actions: null,
+        resolvers: [
+          {
+            statusName: this.conditionForm.get('statusName')?.value,
+            priority: this.conditionForm.get('priority')?.value,
+            outgoingHttpResponseStatus: this.conditionForm.get(
+              'outgoingHttpResponseStatus'
+            )?.value,
+            type: this.conditionForm.get('type')?.value,
+            expectedIncomingHttpResponseStatuses: this.conditionForm.get(
+              'expectedIncomingHttpResponseStatuses'
+            )?.value,
+            expectedIncomingHttpStatusRangeCode: {
+              from: this.conditionForm.get('statusRangeFrom')?.value,
+              to: this.conditionForm.get('statusRangeTo')?.value,
+            },
+            conditions: this.conditionForm.get('conditions')?.value,
+            conditionRelationship: this.conditionForm.get(
+              'conditionRelationship'
+            )?.value,
+            expected: this.conditionForm.get('expected')?.value,
+            property: this.conditionForm.get('property')?.value,
+            expectedValues: this.conditionForm.get('expectedValues')?.value,
+            actions: this.conditionForm.get('actions')?.value,
+            timeout: this.conditionForm.get('timeout')?.value,
+            query: this.conditionForm.get('query')?.value,
+            body: this.conditionForm.get('body')?.value,
+            authHttpType: this.conditionForm.get('authHttpType')?.value,
+            authHttpValue: this.conditionForm.get('authHttpValue')?.value,
+            httpHeaders: this.conditionForm.get('httpHeaders')?.value,
+          },
+        ],
+      });
+
+      this.channelClient.attachPathConditionBased(this.attachCondition);
       this.dialogRef.close({
         valueForm: '',
         type: type,
@@ -189,7 +275,7 @@ export class Dialog implements OnInit {
         actions: null,
       });
       if (this.completeForm.valid) {
-        this.channelclient
+        this.channelClient
           .attachPathCompleteBased(this.attachComplete)
           .subscribe({
             next: (res) => {
@@ -215,7 +301,7 @@ export class Dialog implements OnInit {
         actions: null,
       });
       if (this.mapperForm.valid) {
-        this.channelclient.attachPathMapperBased(this.attachMapper).subscribe({
+        this.channelClient.attachPathMapperBased(this.attachMapper).subscribe({
           next: (res) => {
             this.dialogRef.close({
               valueForm: this.mapperForm.value,
@@ -241,7 +327,7 @@ export class Dialog implements OnInit {
         actions: null,
       });
       if (this.completeForm.valid) {
-        this.channelclient
+        this.channelClient
           .attachPathCompleteBased(this.attachComplete)
           .subscribe({
             next: (res) => {
