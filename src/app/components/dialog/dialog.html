@@ -228,6 +228,64 @@
         }
       </mat-select>
     </mat-form-field>
+
+    <div class="mt-2">
+      <button
+        matButton
+        mat-dialog-close
+        (click)="onAddConditionClick()"
+        [disabled]="!templateMessage"
+      >
+        اضافه کردن شرط
+      </button>
+    </div>
+    <div class="mt-2">
+      @for (item of conditions; track $index) {
+      <div class="row my-1 condition-item">
+        <div class="col-4">
+          مقدار: <span class="fw-bold"> {{ item.value }}</span>
+        </div>
+        <div class="col-4">
+          نوع شرط:
+          <span class="fw-bold">{{ getConditionTypeName(item) }}</span>
+        </div>
+        <div class="col-3">
+          نام ویژگی: <span class="fw-bold">{{ item.property }}</span>
+        </div>
+        <div class="col-1">
+          <i
+            style="color: red"
+            role="button"
+            (click)="onDeleteConditionClick($index)"
+          ></i>
+        </div>
+      </div>
+      }
+    </div>
+    } @if (conditionValue === 2 && templateMessageJson) {
+    <hr />
+    <div class="row">
+      <div class="col-12">
+        <!-- <app-select-json-tree
+          [data]="templateMessageJson"
+          (selectKey)="selectKey($event)"
+        ></app-select-json-tree> -->
+      </div>
+    </div>
+    <!-- @if (selectedKey) { -->
+    <div class="row">
+      <div class="col-6">
+        <label for="conditionRelationship">مقادیر مورد انتظار</label>
+        <!-- <p-chips [(ngModel)]="values" name="values" dir="ltr" /> -->
+      </div>
+      <div class="col-6">
+        <div class="d-flex justify-content-between w-100 inputSwitch-container">
+          <label for="url">مورد انتظار</label>
+          <!-- <p-inputSwitch [(ngModel)]="resolver.expected" name="expected" /> -->
+        </div>
+      </div>
+    </div>
+    <!-- } -->
     } }
   </form>
 

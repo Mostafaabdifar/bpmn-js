@@ -29,6 +29,7 @@ import {
   ChannelPathItem,
   MessageMappingDto,
   MessageWithMappingDto,
+  PropertyValueCondition,
   TemplateMessageClient,
   TemplateMessageDto,
 } from '../../proxy/Integration';
@@ -77,6 +78,7 @@ export class Dialog implements OnInit {
   ChannelPathCompletedTypes: ValueItem[] = [];
   ConditionRelationshipTypes: ValueItem[] = [];
   ConditionResolverTypes: ValueItem[] = [];
+  conditions: PropertyValueCondition[] = [];
   templateMessageId: string = '';
   templateMessage!: TemplateMessageDto;
   templateMessageJson: any;
@@ -373,5 +375,22 @@ export class Dialog implements OnInit {
           });
       }
     }
+  }
+
+  onAddConditionClick(): void {
+    // this.openAddConditionDialog = true;
+  }
+
+  getConditionTypeName(value: any): string {
+    // if (value !== null && value !== undefined) {
+    //   return this.conditionOperationTypes.find((item) => item.value === value)
+    //     .title;
+    // } else {
+    return '';
+    // }
+  }
+
+  onDeleteConditionClick(index: number): void {
+    // this.conditions.splice(index, 1);
   }
 }
