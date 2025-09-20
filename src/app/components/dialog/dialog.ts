@@ -29,6 +29,8 @@ import {
   ChannelPathItem,
   MessageMappingDto,
   MessageWithMappingDto,
+  TemplateMessageClient,
+  TemplateMessageDto,
 } from '../../proxy/Integration';
 import { CoreService, ValueItem } from '../../service/core.service';
 import { JsonPrettyPipe } from '../../service/json-pretty-pipe';
@@ -75,6 +77,9 @@ export class Dialog implements OnInit {
   ChannelPathCompletedTypes: ValueItem[] = [];
   ConditionRelationshipTypes: ValueItem[] = [];
   ConditionResolverTypes: ValueItem[] = [];
+  templateMessageId: string = '';
+  templateMessage!: TemplateMessageDto;
+  templateMessageJson: any;
   conditionValue!: number;
   mappingList: MessageMappingDto[] = [];
   channelPaths: ChannelPathItem[] = [];
@@ -82,11 +87,13 @@ export class Dialog implements OnInit {
   statusList = [
     200, 201, 202, 204, 400, 403, 404, 405, 500, 501, 502, 503, 504,
   ];
+  showConditionForm: boolean = false;
 
   constructor(
     private fb: FormBuilder,
     private channelClient: ChannelClient,
-    private coreService: CoreService
+    private coreService: CoreService,
+    private templateMessageClient: TemplateMessageClient
   ) {
     this.startForm = this.fb.group({
       name: ['', Validators.required],
@@ -117,19 +124,26 @@ export class Dialog implements OnInit {
     this.conditionForm = this.fb.group({
       name: ['', Validators.required],
       conditionResolverType: ['', Validators.required],
-      mappingItem: ['', Validators.required],
+      mappingItem: [''],
       statusItemList: [[''], Validators.required],
       statusItem: ['', Validators.required],
-      channelPath: ['', Validators.required],
       statusName: ['', Validators.required],
+      actions: [''],
+      conditionRelationship: [''],
       description: [''],
     });
 
     this.conditionForm
       .get('conditionResolverType')
       ?.valueChanges.subscribe((value) => {
+        this.showConditionForm = true;
         this.conditionValue = value;
       });
+
+    this.conditionForm.get('mappingItem')?.valueChanges.subscribe((value) => {
+      this.templateMessageId = value;
+      this.getTemplateMessageById();
+    });
   }
 
   ngOnInit(): void {
@@ -153,6 +167,18 @@ export class Dialog implements OnInit {
       this.mappingList = response.mappings.items!;
       this.channelPaths = response.channel.paths!;
       this.messageWithMappingList = response.messageWithMapping.items!;
+    });
+  }
+
+  getTemplateMessageById(): void {
+    this.templateMessageClient.getById(this.templateMessageId).subscribe({
+      next: (res) => {
+        this.templateMessage = res;
+        this.templateMessageJson = JSON.parse(this.templateMessage.json!);
+      },
+      error: (error) => {
+        console.log(error);
+      },
     });
   }
 
@@ -226,42 +252,46 @@ export class Dialog implements OnInit {
         actions: null,
         resolvers: [
           {
+            expectedIncomingHttpResponseStatuses:
+              this.conditionForm.get('statusItemList')?.value,
+            outgoingHttpResponseStatus:
+              this.conditionForm.get('statusItem')?.value,
+            actions: this.conditionForm.get('actions')?.value,
             statusName: this.conditionForm.get('statusName')?.value,
-            priority: this.conditionForm.get('priority')?.value,
-            outgoingHttpResponseStatus: this.conditionForm.get(
-              'outgoingHttpResponseStatus'
-            )?.value,
-            type: this.conditionForm.get('type')?.value,
-            expectedIncomingHttpResponseStatuses: this.conditionForm.get(
-              'expectedIncomingHttpResponseStatuses'
-            )?.value,
-            expectedIncomingHttpStatusRangeCode: {
-              from: this.conditionForm.get('statusRangeFrom')?.value,
-              to: this.conditionForm.get('statusRangeTo')?.value,
-            },
-            conditions: this.conditionForm.get('conditions')?.value,
             conditionRelationship: this.conditionForm.get(
               'conditionRelationship'
             )?.value,
-            expected: this.conditionForm.get('expected')?.value,
-            property: this.conditionForm.get('property')?.value,
-            expectedValues: this.conditionForm.get('expectedValues')?.value,
-            actions: this.conditionForm.get('actions')?.value,
-            timeout: this.conditionForm.get('timeout')?.value,
-            query: this.conditionForm.get('query')?.value,
-            body: this.conditionForm.get('body')?.value,
-            authHttpType: this.conditionForm.get('authHttpType')?.value,
-            authHttpValue: this.conditionForm.get('authHttpValue')?.value,
-            httpHeaders: this.conditionForm.get('httpHeaders')?.value,
+            type: this.conditionValue,
+
+            // priority: this.conditionForm.get('priority')?.value,
+            // expectedIncomingHttpStatusRangeCode: {
+            //   from: this.conditionForm.get('statusRangeFrom')?.value,
+            //   to: this.conditionForm.get('statusRangeTo')?.value,
+            // },
+            // conditions: this.conditionForm.get('conditions')?.value,
+            // expected: this.conditionForm.get('expected')?.value,
+            // property: this.conditionForm.get('property')?.value,
+            // expectedValues: this.conditionForm.get('expectedValues')?.value,
+            // timeout: this.conditionForm.get('timeout')?.value,
+            // query: this.conditionForm.get('query')?.value,
+            // body: this.conditionForm.get('body')?.value,
+            // authHttpType: this.conditionForm.get('authHttpType')?.value,
+            // authHttpValue: this.conditionForm.get('authHttpValue')?.value,
+            // httpHeaders: this.conditionForm.get('httpHeaders')?.value,
           },
         ],
       });
 
-      this.channelClient.attachPathConditionBased(this.attachCondition);
-      this.dialogRef.close({
-        valueForm: '',
-        type: type,
-      });
+      console.log(this.attachCondition);
+      console.log(this.attachCondition.resolvers);
+
+      // this.attachCondition.resolvers(this.attachCondition.resolvers?.length)! + 1
+
+      // this.channelClient.attachPathConditionBased(this.attachCondition);
+      // this.dialogRef.close({
+      //   valueForm: '',
+      //   type: type,
+      // });
     } else if (type === 'CustomEndEvent') {
       this.attachComplete.init({
         name: this.completeForm.get('name')?.value,

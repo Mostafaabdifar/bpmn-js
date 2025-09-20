@@ -131,6 +131,7 @@
     </mat-form-field>
   </form>
   } @else if (data.typeAction === "ExclusiveGateway") {
+
   <form [formGroup]="conditionForm">
     <mat-form-field class="w-full">
       <mat-label>Name</mat-label>
@@ -149,8 +150,7 @@
       </mat-select>
     </mat-form-field>
 
-    @if(conditionValue === 0 ||conditionValue === 2){
-
+    @if(showConditionForm){ @if(conditionValue === 0){
     <mat-form-field class="w-full">
       <mat-label>الگوی نگاشت پیام</mat-label>
       <mat-select formControlName="mappingItem">
@@ -160,10 +160,22 @@
       </mat-select>
     </mat-form-field>
 
+    } @else {
+    <mat-form-field class="w-full">
+      <mat-label>الگوی نگاشت پیام</mat-label>
+      <mat-select formControlName="mappingItem">
+        @for (item of messageWithMappingList; track item) {
+        <mat-option [value]="item.id">{{ item.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    }
+
     <mat-form-field class="w-full">
       <mat-label>کد http status ورودی مورد انتظار</mat-label>
       <mat-select
-        formControlName="statusItemList"
+        formControlName="statusItem"
         placeholder="وضعیت را انتخاب کنید"
         multiple
       >
@@ -173,14 +185,14 @@
       </mat-select>
     </mat-form-field>
 
-    <mat-form-field class="w-full">
+    <!-- <mat-form-field class="w-full">
       <mat-label>مسیر بعدی</mat-label>
       <mat-select formControlName="channelPath">
         @for (item of channelPaths; track item) {
         <mat-option [value]="item.id">{{ item.name }}</mat-option>
         }
       </mat-select>
-    </mat-form-field>
+    </mat-form-field> -->
 
     <mat-form-field class="w-full">
       <mat-label>وضعیت ها</mat-label>
@@ -207,72 +219,16 @@
       }
     </mat-form-field>
 
-    } @else if(conditionValue === 1){
-    <mat-form-field class="w-full">
-      <mat-label>الگوی نگاشت پیام</mat-label>
-      <mat-select formControlName="mappingItem">
-        @for (item of mappingList; track item) {
-        <mat-option [value]="item.id">{{ item.name }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-
-    <mat-form-field class="w-full">
-      <mat-label>کد http status ورودی مورد انتظار</mat-label>
-      <mat-select
-        formControlName="statusItem"
-        placeholder="وضعیت را انتخاب کنید"
-        multiple
-      >
-        @for (item of statusList; track item) {
-        <mat-option [value]="item">{{ item }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-
-    <mat-form-field class="w-full">
-      <mat-label>مسیر بعدی</mat-label>
-      <mat-select formControlName="channelPath">
-        @for (item of channelPaths; track item) {
-        <mat-option [value]="item.id">{{ item.name }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-
-    <mat-form-field class="w-full">
-      <mat-label>وضعیت ها</mat-label>
-      <mat-select
-        formControlName="conditionResolverType"
-        placeholder="لطفا یک وضعیت را انتخاب کنید"
-      >
-        @for (item of statusList; track item) {
-        <mat-option [value]="item">{{ item }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
-
-    <mat-form-field class="w-full">
-      <mat-label>نام وضعیت</mat-label>
-      <input
-        type="text"
-        matInput
-        formControlName="statusName"
-        placeholder="نام وضعیت"
-      />
-      @if (conditionForm.get('name')?.hasError('required')) {
-      <mat-error>Status name is <strong>required</strong></mat-error>
-      }
-    </mat-form-field>
-
+    @if(conditionValue === 1){
     <mat-form-field class="w-full">
       <mat-label>Condition Relationship</mat-label>
-      <mat-select formControlName="channelPath">
+      <mat-select formControlName="conditionRelationship">
         @for (item of ConditionRelationshipTypes; track item) {
         <mat-option [value]="item.value">{{ item.title }}</mat-option>
         }
       </mat-select>
     </mat-form-field>
-    }
+    } }
   </form>
 
   } @else if (data.typeAction === "EndEvent" || data.typeAction ===
