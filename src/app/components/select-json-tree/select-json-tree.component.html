@@ -1,0 +1,39 @@
+<div class="tree" [class]="direction">
+  <ul>
+    @for (key of objectKeys(data); track key) {
+    <li
+      [id]="(parent ? parent + '.' : '') + key"
+      (click)="selectObjectField(key, $event)"
+      [class.active]="selectedKey == (parent ? parent + '.' : '') + key"
+    >
+      <span class="key">{{ key }}:</span>
+
+      @if (isObject(data[key])) {
+      <app-select-json-tree
+        [data]="data[key]"
+        [parent]="parent ? parent + '.' + key : key"
+        [direction]="direction"
+      />
+      } @else if (isArray(data[key])) {
+      <ul>
+        @for (item of data[key]; track $index) {
+        <li>
+          @if (isObject(item)) {
+          <app-select-json-tree
+            [data]="item"
+            [parent]="key + '.0'"
+            [direction]="direction"
+          />
+          } @else {
+          <span class="value">{{ item }}</span>
+          }
+        </li>
+        }
+      </ul>
+      } @else {
+      <span class="value">{{ data[key] }}</span>
+      }
+    </li>
+    }
+  </ul>
+</div>

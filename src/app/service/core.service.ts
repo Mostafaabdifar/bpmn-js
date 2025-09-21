@@ -9,7 +9,7 @@ import {
   tap,
 } from 'rxjs';
 import { environment } from '../environments/environment';
-import { ChannelClient, MappingClient } from '../proxy/Integration';
+import { ChannelClient, MappingClient, TemplateMessageClient } from '../proxy/Integration';
 export interface IEnumItem {
   name: string;
   title: string;
@@ -34,7 +34,8 @@ export class CoreService {
   constructor(
     private http: HttpClient,
     private channelClient: ChannelClient,
-    private mappingClient: MappingClient
+    private mappingClient: MappingClient,
+    private templateMessage: TemplateMessageClient
   ) {}
 
   fetchData(): Observable<IEnumItem[]> {
@@ -50,12 +51,7 @@ export class CoreService {
   getDataList(channelId: string): Observable<any> {
     if (!this.dataListCache$) {
       this.dataListCache$ = combineLatest({
-        mappings: this.mappingClient.getMessageMappingList(
-          undefined,
-          undefined,
-          undefined
-        ),
-        messageWithMapping: this.mappingClient.getMessageWithMappingList(
+        templateMessageList: this.templateMessage.geList(
           undefined,
           undefined,
           undefined

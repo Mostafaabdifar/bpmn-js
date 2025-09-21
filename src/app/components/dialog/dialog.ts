@@ -1,5 +1,6 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import {
+  FormArray,
   FormBuilder,
   FormGroup,
   FormsModule,
@@ -27,14 +28,19 @@ import {
   AttachChannelPathStartBasedCommand,
   ChannelClient,
   ChannelPathItem,
-  MessageMappingDto,
   MessageWithMappingDto,
+  PropertyExpectedValue,
   PropertyValueCondition,
-  TemplateMessageClient,
   TemplateMessageDto,
 } from '../../proxy/Integration';
 import { CoreService, ValueItem } from '../../service/core.service';
 import { JsonPrettyPipe } from '../../service/json-pretty-pipe';
+import { SelectJsonTreeComponent } from '../select-json-tree/select-json-tree.component';
+import { AddConditionComponent } from '../add-condition/add-condition.component';
+import { MatIconModule } from '@angular/material/icon';
+import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 export interface DialogData {
   label: string;
   typeAction: string;
@@ -48,11 +54,16 @@ export interface DialogData {
     MatButtonModule,
     MatDialogClose,
     MatInputModule,
+    MatIconModule,
+    MatChipsModule,
     FormsModule,
+    MatSlideToggleModule,
     MatFormFieldModule,
     ReactiveFormsModule,
     MatSelectModule,
     JsonPrettyPipe,
+    SelectJsonTreeComponent,
+    AddConditionComponent,
   ],
   templateUrl: './dialog.html',
   styleUrl: './dialog.scss',
@@ -61,11 +72,13 @@ export class Dialog implements OnInit {
   readonly dialogRef = inject(MatDialogRef<Dialog>);
   readonly data = inject<DialogData>(MAT_DIALOG_DATA);
   cache$: Observable<any> | null = null;
+
   startForm: FormGroup;
   apiForm: FormGroup;
   completeForm: FormGroup;
   mapperForm: FormGroup;
   conditionForm: FormGroup;
+
   attachAPiCall = new AttachChannelPathApiCallingBasedCommand();
   attachPathStart = new AttachChannelPathStartBasedCommand();
   attachComplete = new AttachChannelPathCompleteBasedCommand();
@@ -73,29 +86,37 @@ export class Dialog implements OnInit {
   attachCondition = new AttachChannelPathConditionBasedCommand();
   channelId: string = '91eff4bb-805e-441a-83be-bfb85e17c11e';
   mappingId: string = '1d539f32-9210-4133-a8c5-e364388b54dd';
+
   HttpMethodTypes: ValueItem[] = [];
   AuthHttpTypes: ValueItem[] = [];
   ChannelPathCompletedTypes: ValueItem[] = [];
   ConditionRelationshipTypes: ValueItem[] = [];
   ConditionResolverTypes: ValueItem[] = [];
+  conditionOperationTypes: ValueItem[] = [];
+  channelResolverTypes: ValueItem[] = [];
+
   conditions: PropertyValueCondition[] = [];
+  expectedValues: PropertyExpectedValue[] = [];
+
   templateMessageId: string = '';
   templateMessage!: TemplateMessageDto;
   templateMessageJson: any;
+  templateMessageList: TemplateMessageDto[] = [];
   conditionValue!: number;
-  mappingList: MessageMappingDto[] = [];
   channelPaths: ChannelPathItem[] = [];
   messageWithMappingList: MessageWithMappingDto[] = [];
   statusList = [
     200, 201, 202, 204, 400, 403, 404, 405, 500, 501, 502, 503, 504,
   ];
   showConditionForm: boolean = false;
+  openAddConditionDialog: boolean = false;
+  selectedKey: any;
+  announcer = inject(LiveAnnouncer);
 
   constructor(
     private fb: FormBuilder,
     private channelClient: ChannelClient,
-    private coreService: CoreService,
-    private templateMessageClient: TemplateMessageClient
+    private coreService: CoreService
   ) {
     this.startForm = this.fb.group({
       name: ['', Validators.required],
@@ -126,13 +147,20 @@ export class Dialog implements OnInit {
     this.conditionForm = this.fb.group({
       name: ['', Validators.required],
       conditionResolverType: ['', Validators.required],
-      mappingItem: [''],
       statusItemList: [[''], Validators.required],
       statusItem: ['', Validators.required],
       statusName: ['', Validators.required],
+      statusRangeFrom: ['', Validators.required],
+      statusRangeTo: ['', Validators.required],
+      templateMessageItem: [''],
       actions: [''],
-      conditionRelationship: [''],
+      conditionRelationship: [null],
       description: [''],
+      property: [''],
+      conditions: [''],
+      values: this.fb.array<string>([]),
+      expected: [false],
+      expectedValues: [''],
     });
 
     this.conditionForm
@@ -142,10 +170,12 @@ export class Dialog implements OnInit {
         this.conditionValue = value;
       });
 
-    this.conditionForm.get('mappingItem')?.valueChanges.subscribe((value) => {
-      this.templateMessageId = value;
-      this.getTemplateMessageById();
-    });
+    this.conditionForm
+      .get('templateMessageItem')
+      ?.valueChanges.subscribe((value) => {
+        this.templateMessage = value;
+        this.templateMessageJson = JSON.parse(this.templateMessage.json!);
+      });
   }
 
   ngOnInit(): void {
@@ -163,234 +193,237 @@ export class Dialog implements OnInit {
       this.ConditionRelationshipTypes =
         data.find((item) => item.name === 'ConditionRelationshipType')
           ?.valueItems ?? [];
+      this.conditionOperationTypes =
+        data.find((item) => item.name === 'ConditionOperation')?.valueItems ??
+        [];
     });
 
     this.coreService.getDataList(this.channelId).subscribe((response) => {
-      this.mappingList = response.mappings.items!;
+      this.templateMessageList = response.templateMessageList.items!;
       this.channelPaths = response.channel.paths!;
-      this.messageWithMappingList = response.messageWithMapping.items!;
     });
   }
 
-  getTemplateMessageById(): void {
-    this.templateMessageClient.getById(this.templateMessageId).subscribe({
-      next: (res) => {
-        this.templateMessage = res;
-        this.templateMessageJson = JSON.parse(this.templateMessage.json!);
-      },
-      error: (error) => {
-        console.log(error);
-      },
-    });
+  get valuesArray(): FormArray {
+    return this.conditionForm.get('values') as FormArray;
   }
 
   onOkClick(): void {
     const type = this.data.typeAction;
-    if (type === 'StartEvent') {
-      this.attachPathStart.init({
-        name: this.startForm.get('companyName')?.value,
-        description: this.startForm.get('companyDescription')?.value,
-        channelId: this.channelId,
-      });
-      if (this.startForm.valid) {
-        this.channelClient
-          .attachPathStartBased(this.attachPathStart)
-          .subscribe({
-            next: (res) => {
-              this.dialogRef.close({
-                valueForm: this.startForm.value,
-                type: type,
-                pathId: res.pathId,
-              });
-            },
-            error: (err) => {
-              console.log(err);
-            },
-          });
-      }
-    } else if (type === 'Task') {
-      this.attachAPiCall.init({
-        name: this.apiForm.get('conditionLabel')?.value,
-        description: this.apiForm.get('companyDescription')?.value,
-        beforeChannelPathId: null,
-        channelId: this.channelId,
-        commandId: null,
-        actions: null,
-        api: {
-          baseUrl: this.apiForm.get('baseUrl')?.value,
-          path: this.apiForm.get('path')?.value,
-          httpMethodType: this.apiForm.get('httpMethodType')?.value,
-          timeout: this.apiForm.get('timeout')?.value,
-          query: this.apiForm.get('query')?.value,
-          body: this.apiForm.get('body')?.value,
-          authHttpType: this.apiForm.get('authHttpType')?.value,
-          authHttpValue: this.apiForm.get('authHttpValue')?.value,
-          httpHeaders: this.apiForm.get('httpHeaders')?.value,
+
+    const configMap: Record<string, any> = {
+      StartEvent: {
+        form: this.startForm,
+        initData: () => {
+          return {
+            description: this.startForm.get('companyDescription')?.value,
+            channelId: this.channelId,
+            name: this.startForm.get('companyName')?.value,
+          };
         },
-      });
-      if (this.apiForm.valid) {
-        this.channelClient
-          .attachPathApiCallingBased(this.attachAPiCall)
-          .subscribe({
-            next: (res) => {
-              this.dialogRef.close({
-                valueForm: this.apiForm.value,
-                type: type,
-                pathId: res.pathId,
-              });
+        attach: this.attachPathStart,
+        service: this.channelClient.attachPathStartBased.bind(
+          this.channelClient
+        ),
+      },
+      Task: {
+        form: this.apiForm,
+        initData: () => {
+          return {
+            name: this.apiForm.get('conditionLabel')?.value,
+            description: this.apiForm.get('companyDescription')?.value,
+            beforeChannelPathId: null,
+            channelId: this.channelId,
+            commandId: null,
+            actions: null,
+            api: {
+              baseUrl: this.apiForm.get('baseUrl')?.value,
+              path: this.apiForm.get('path')?.value,
+              httpMethodType: this.apiForm.get('httpMethodType')?.value,
+              timeout: this.apiForm.get('timeout')?.value,
+              query: this.apiForm.get('query')?.value,
+              body: this.apiForm.get('body')?.value,
+              authHttpType: this.apiForm.get('authHttpType')?.value,
+              authHttpValue: this.apiForm.get('authHttpValue')?.value,
+              httpHeaders: this.apiForm.get('httpHeaders')?.value,
             },
-            error: (err) => {
-              console.log(err);
-            },
-          });
-      }
-    } else if (type === 'ExclusiveGateway') {
-      this.attachCondition.init({
-        name: this.conditionForm.get('name')?.value,
-        description: this.conditionForm.get('description')?.value,
-        beforeChannelPathId: null,
-        channelId: this.channelId,
-        commandId: null,
-        actions: null,
-        resolvers: [
-          {
-            expectedIncomingHttpResponseStatuses:
-              this.conditionForm.get('statusItemList')?.value,
-            outgoingHttpResponseStatus:
-              this.conditionForm.get('statusItem')?.value,
-            actions: this.conditionForm.get('actions')?.value,
-            statusName: this.conditionForm.get('statusName')?.value,
-            conditionRelationship: this.conditionForm.get(
-              'conditionRelationship'
-            )?.value,
-            type: this.conditionValue,
-
-            // priority: this.conditionForm.get('priority')?.value,
-            // expectedIncomingHttpStatusRangeCode: {
-            //   from: this.conditionForm.get('statusRangeFrom')?.value,
-            //   to: this.conditionForm.get('statusRangeTo')?.value,
-            // },
-            // conditions: this.conditionForm.get('conditions')?.value,
-            // expected: this.conditionForm.get('expected')?.value,
-            // property: this.conditionForm.get('property')?.value,
-            // expectedValues: this.conditionForm.get('expectedValues')?.value,
-            // timeout: this.conditionForm.get('timeout')?.value,
-            // query: this.conditionForm.get('query')?.value,
-            // body: this.conditionForm.get('body')?.value,
-            // authHttpType: this.conditionForm.get('authHttpType')?.value,
-            // authHttpValue: this.conditionForm.get('authHttpValue')?.value,
-            // httpHeaders: this.conditionForm.get('httpHeaders')?.value,
-          },
-        ],
-      });
-
-      console.log(this.attachCondition);
-      console.log(this.attachCondition.resolvers);
-
-      // this.attachCondition.resolvers(this.attachCondition.resolvers?.length)! + 1
-
-      // this.channelClient.attachPathConditionBased(this.attachCondition);
-      // this.dialogRef.close({
-      //   valueForm: '',
-      //   type: type,
-      // });
-    } else if (type === 'CustomEndEvent') {
-      this.attachComplete.init({
-        name: this.completeForm.get('name')?.value,
-        description: this.completeForm.get('description')?.value,
-        completedType: this.ChannelPathCompletedTypes.find(
-          (item) => item.key === 'Failed'
-        )?.value, //Failed process
-        channelId: this.channelId,
-        beforeChannelPathId: null,
-        commandId: null,
-        actions: null,
-      });
-      if (this.completeForm.valid) {
-        this.channelClient
-          .attachPathCompleteBased(this.attachComplete)
-          .subscribe({
-            next: (res) => {
-              this.dialogRef.close({
-                valueForm: this.completeForm.value,
-                type: type,
-                pathId: res.pathId,
-              });
-            },
-            error: (err) => {
-              console.log(err);
-            },
-          });
-      }
-    } else if (type === 'CustomTask') {
-      this.attachMapper.init({
-        name: this.mapperForm.get('name')?.value,
-        messageMappingId: this.mappingId,
-        description: this.mapperForm.get('description')?.value,
-        channelId: this.channelId,
-        beforeChannelPathId: null,
-        commandId: null,
-        actions: null,
-      });
-      if (this.mapperForm.valid) {
-        this.channelClient.attachPathMapperBased(this.attachMapper).subscribe({
-          next: (res) => {
-            this.dialogRef.close({
-              valueForm: this.mapperForm.value,
-              type: type,
-              pathId: res.pathId,
+          };
+        },
+        attach: this.attachAPiCall,
+        service: this.channelClient.attachPathApiCallingBased.bind(
+          this.channelClient
+        ),
+      },
+      ExclusiveGateway: {
+        form: this.conditionForm,
+        initData: () => {
+          if (this.valuesArray.length > 0) {
+            this.expectedValues = [];
+            this.valuesArray.controls.forEach((item) => {
+              const value = new PropertyExpectedValue();
+              value.init({ value: item.value });
+              this.expectedValues.push(value);
             });
-          },
-          error: (err) => {
-            console.log(err);
-          },
-        });
-      }
-    } else if (type === 'EndEvent') {
-      this.attachComplete.init({
-        name: this.completeForm.get('name')?.value,
-        description: this.completeForm.get('description')?.value,
-        completedType: this.ChannelPathCompletedTypes.find(
-          (item) => item.key === 'Successed'
-        )?.value, //Successed process
-        channelId: this.channelId,
-        beforeChannelPathId: null,
-        commandId: null,
-        actions: null,
-      });
-      if (this.completeForm.valid) {
-        this.channelClient
-          .attachPathCompleteBased(this.attachComplete)
-          .subscribe({
-            next: (res) => {
-              this.dialogRef.close({
-                valueForm: this.completeForm.value,
-                type: type,
-                pathId: res.pathId,
-              });
-            },
-            error: (err) => {
-              console.log(err);
-            },
+          }
+
+          return {
+            name: this.conditionForm.get('name')?.value,
+            description: this.conditionForm.get('description')?.value,
+            beforeChannelPathId: null,
+            channelId: this.channelId,
+            commandId: null,
+            actions: null,
+            resolvers: [
+              {
+                expectedIncomingHttpResponseStatuses:
+                  this.conditionForm.get('statusItemList')?.value,
+                outgoingHttpResponseStatus:
+                  this.conditionForm.get('statusItem')?.value,
+                actions: this.conditionForm.get('actions')?.value,
+                statusName: this.conditionForm.get('statusName')?.value,
+                conditionRelationship:
+                  this.conditionForm.get('conditionRelationship')?.value ??
+                  null,
+                type: this.conditionValue,
+                expectedIncomingHttpStatusRangeCode: {
+                  from: this.conditionForm.get('statusRangeFrom')?.value,
+                  to: this.conditionForm.get('statusRangeTo')?.value,
+                },
+                conditions: this.conditions.length ? this.conditions : null,
+                property: this.conditionForm.get('property')?.value,
+                expectedValues: this.expectedValues.map((v) => ({
+                  value: v.value,
+                })),
+                expected: this.conditionForm.get('expected')?.value,
+              },
+            ],
+          };
+        },
+        attach: this.attachCondition,
+        service: this.channelClient.attachPathConditionBased.bind(
+          this.channelClient
+        ),
+      },
+      CustomEndEvent: {
+        form: this.completeForm,
+        initData: () => {
+          return {
+            name: this.completeForm.get('name')?.value,
+            description: this.completeForm.get('description')?.value,
+            completedType: this.ChannelPathCompletedTypes.find(
+              (i) => i.key === 'Failed'
+            )?.value,
+            channelId: this.channelId,
+            beforeChannelPathId: null,
+            commandId: null,
+            actions: null,
+          };
+        },
+        attach: this.attachComplete,
+        service: this.channelClient.attachPathCompleteBased.bind(
+          this.channelClient
+        ),
+      },
+      CustomTask: {
+        form: this.mapperForm,
+        initData: () => {
+          return {
+            name: this.mapperForm.get('name')?.value,
+            messageMappingId: this.mappingId,
+            description: this.mapperForm.get('description')?.value,
+            channelId: this.channelId,
+            beforeChannelPathId: null,
+            commandId: null,
+            actions: null,
+          };
+        },
+        attach: this.attachMapper,
+        service: this.channelClient.attachPathMapperBased.bind(
+          this.channelClient
+        ),
+      },
+      EndEvent: {
+        form: this.completeForm,
+        initData: () => {
+          return {
+            name: this.completeForm.get('name')?.value,
+            description: this.completeForm.get('description')?.value,
+            completedType: this.ChannelPathCompletedTypes.find(
+              (i) => i.key === 'Successed'
+            )?.value,
+            channelId: this.channelId,
+            beforeChannelPathId: null,
+            commandId: null,
+            actions: null,
+          };
+        },
+        attach: this.attachComplete,
+        service: this.channelClient.attachPathCompleteBased.bind(
+          this.channelClient
+        ),
+      },
+    };
+
+    const config = configMap[type];
+    if (!config) return;
+
+    config.attach.init(config.initData());
+
+    if (config.form.valid && config.service) {
+      config.service(config.attach).subscribe({
+        next: (res: any) => {
+          this.dialogRef.close({
+            valueForm: config.form.value,
+            type,
+            pathId: res.pathId,
           });
-      }
+        },
+        error: (err: any) => console.error(err),
+      });
+    } else if (type === 'ExclusiveGateway') {
+      console.log(config.attach);
+      console.log(config.attach.resolvers);
     }
   }
 
-  onAddConditionClick(): void {
-    // this.openAddConditionDialog = true;
+  selectKey(key: string): void {
+    this.selectedKey = key;
+    this.conditionForm.get('property')?.setValue(key);
+  }
+
+  add(event: MatChipInputEvent): void {
+    const value = (event.value || '').trim();
+    if (value) {
+      this.valuesArray.push(this.fb.control(value));
+    }
+    event.chipInput!.clear();
+  }
+
+  removeKeyword(keyword: string): void {
+    const index = this.valuesArray.value.indexOf(keyword);
+    if (index >= 0) {
+      this.valuesArray.removeAt(index);
+      this.announcer.announce(`removed ${keyword}`);
+    }
   }
 
   getConditionTypeName(value: any): string {
-    // if (value !== null && value !== undefined) {
-    //   return this.conditionOperationTypes.find((item) => item.value === value)
-    //     .title;
-    // } else {
-    return '';
-    // }
+    if (value !== null && value !== undefined) {
+      return this.conditionOperationTypes.find((item) => item.value === value)
+        ?.title!;
+    } else {
+      return '';
+    }
+  }
+
+  addCondition(condition: PropertyValueCondition): void {
+    if (condition) {
+      this.conditions.push(condition);
+      this.openAddConditionDialog = false;
+    }
   }
 
   onDeleteConditionClick(index: number): void {
-    // this.conditions.splice(index, 1);
+    this.conditions.splice(index, 1);
   }
 }

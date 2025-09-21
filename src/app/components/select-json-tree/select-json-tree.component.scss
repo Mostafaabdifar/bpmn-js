@@ -1,0 +1,65 @@
+.tree {
+  margin-top: 10px;
+  ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    border-left: 1px solid #ccc;
+  }
+}
+
+.tree li {
+  margin: 5px 0;
+  padding: 10px 20px;
+  position: relative;
+  background: #e3e3e3;
+  border: 1px solid #a5a5a5;
+  &.disabled {
+    background-color: #ffe1e1;
+  }
+  &.active {
+    border: 1px solid #002e4c;
+    color: white;
+    transition: ease-in all 0.1s;
+    background-color: white;
+  }
+}
+
+.tree li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 21px;
+  width: 10px;
+  height: 2px;
+  background: #696969;
+}
+
+.tree li:last-child::after {
+  display: none;
+}
+
+.tree {
+  &.rtl {
+    ul {
+      border-right: 1px solid #ccc;
+      border-left: 0;
+    }
+    li {
+      display: flex;
+      gap: 4px;
+      cursor: pointer;
+      &::before {
+        right: 0;
+      }
+    }
+  }
+}
+.key {
+  font-weight: bold;
+  color: #007acc;
+}
+
+.value {
+  color: #333;
+}

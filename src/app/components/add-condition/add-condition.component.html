@@ -1,0 +1,44 @@
+<mat-dialog-content>
+  <form #createTaskForm="ngForm">
+    <app-select-json-tree
+      [data]="templateMessageJson"
+      (selectKey)="selectKey($event)"
+    ></app-select-json-tree>
+
+    <mat-form-field appearance="fill" class="w-100">
+      <mat-label>مقدار</mat-label>
+      <input
+        matInput
+        placeholder="مقدار را وارد کنید"
+        required
+        name="value"
+        [(ngModel)]="condition.value"
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="fill" class="w-100">
+      <mat-label>عملگر شرطی</mat-label>
+      <mat-select
+        [(ngModel)]="condition.conditionOperator"
+        name="conditionOperationType"
+        required
+      >
+        @for (item of conditionOperationTypes; track item) {
+        <mat-option [value]="item.value">{{ item.title }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="center">
+  <button mat-button color="warn" (click)="onCancel()">cancel</button>
+  <button
+    mat-flat-button
+    color="primary"
+    (click)="onSubmit()"
+    [disabled]="createTaskForm.invalid"
+  >
+    create
+  </button>
+</mat-dialog-actions>
