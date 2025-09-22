@@ -7,7 +7,7 @@ import {
 } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { CoreService } from '../../../service/core.service';
+import { CoreService, ValueItem } from '../../../service/core.service';
 
 @Component({
   selector: 'app-end-event-form',
@@ -17,12 +17,29 @@ import { CoreService } from '../../../service/core.service';
 })
 export class EndEventForm {
   completeForm: FormGroup;
+  ChannelPathCompletedTypes: ValueItem[] = [];
+
   constructor(private fb: FormBuilder, private coreService: CoreService) {
     this.completeForm = this.fb.group({
       name: ['', Validators.required],
+      completedType: [0, Validators.required],
       description: [''],
     });
 
     this.coreService.setForm(this.completeForm, 'EndEvent');
+  }
+
+  ngOnInit(): void {
+    this.coreService.dataSubject.subscribe((data) => {
+      this.ChannelPathCompletedTypes =
+        data.find((item) => item.name === 'ChannelPathCompletedType')
+          ?.valueItems ?? [];
+      this.completeForm
+        .get('completedType')
+        ?.setValue(
+          this.ChannelPathCompletedTypes.find((i) => i.key === 'Successed')
+            ?.value
+        );
+    });
   }
 }

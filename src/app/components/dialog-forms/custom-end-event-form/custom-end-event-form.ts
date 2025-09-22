@@ -22,10 +22,8 @@ export class CustomEndEventForm implements OnInit {
   constructor(private fb: FormBuilder, private coreService: CoreService) {
     this.completeForm = this.fb.group({
       name: ['', Validators.required],
+      completedType: [0, Validators.required],
       description: [''],
-      completedType: [
-        this.ChannelPathCompletedTypes.find((i) => i.key === 'Failed')?.value,
-      ],
     });
 
     this.coreService.setForm(this.completeForm, 'CustomEndEvent');
@@ -36,6 +34,11 @@ export class CustomEndEventForm implements OnInit {
       this.ChannelPathCompletedTypes =
         data.find((item) => item.name === 'ChannelPathCompletedType')
           ?.valueItems ?? [];
+      this.completeForm
+        .get('completedType')
+        ?.setValue(
+          this.ChannelPathCompletedTypes.find((i) => i.key === 'Failed')?.value
+        );
     });
   }
 }

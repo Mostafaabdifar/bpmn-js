@@ -91,21 +91,7 @@ export class Dialog implements OnInit {
     });
   }
 
-  private buildExpectedValues(): PropertyExpectedValue[] {
-    return this.valuesArray.controls.map((control) => {
-      const value = new PropertyExpectedValue();
-      value.init({ value: control.value });
-      return value;
-    });
-  }
-
-  get valuesArray(): FormArray {
-    return this.childForm.value['values'] as FormArray;
-  }
-
   onOkClick() {
-    console.log('فرم فرزند:', this.childForm.value);
-    console.log('تایپ:', this.formType);
     const type = this.formType;
     const configMap: Record<string, any> = {
       StartEvent: {
