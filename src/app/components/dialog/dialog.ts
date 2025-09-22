@@ -84,6 +84,7 @@ export class Dialog implements OnInit {
   attachComplete = new AttachChannelPathCompleteBasedCommand();
   attachMapper = new AttachChannelPathMapperBasedCommand();
   attachCondition = new AttachChannelPathConditionBasedCommand();
+
   channelId: string = '91eff4bb-805e-441a-83be-bfb85e17c11e';
   mappingId: string = '1d539f32-9210-4133-a8c5-e364388b54dd';
 
@@ -110,7 +111,7 @@ export class Dialog implements OnInit {
   ];
   showConditionForm: boolean = false;
   openAddConditionDialog: boolean = false;
-  selectedKey: any;
+  selectedKey!: string;
   announcer = inject(LiveAnnouncer);
 
   constructor(
@@ -118,11 +119,11 @@ export class Dialog implements OnInit {
     private channelClient: ChannelClient,
     private coreService: CoreService
   ) {
-    this.startForm = this.fb.group({
+    this.startForm = this.buildForm({
       name: ['', Validators.required],
       description: [''],
     });
-    this.apiForm = this.fb.group({
+    this.apiForm = this.buildForm({
       name: ['', Validators.required],
       description: [''],
       baseUrl: ['', Validators.required],
@@ -135,16 +136,16 @@ export class Dialog implements OnInit {
       authHttpValue: ['', Validators.required],
       httpHeaders: ['', Validators.required],
     });
-    this.completeForm = this.fb.group({
+    this.completeForm = this.buildForm({
       name: ['', Validators.required],
       description: [''],
     });
-    this.mapperForm = this.fb.group({
+    this.mapperForm = this.buildForm({
       name: ['', Validators.required],
       messageMapping: ['', Validators.required],
       description: [''],
     });
-    this.conditionForm = this.fb.group({
+    this.conditionForm = this.buildForm({
       name: ['', Validators.required],
       conditionResolverType: ['', Validators.required],
       statusItemList: [[''], Validators.required],
@@ -163,10 +164,21 @@ export class Dialog implements OnInit {
       expectedValues: [''],
     });
 
+    let lastValue: any = null;
+
     this.conditionForm
       .get('conditionResolverType')
       ?.valueChanges.subscribe((value) => {
         this.showConditionForm = true;
+
+        if (lastValue !== null && value !== lastValue) {
+          this.conditionForm.reset({}, { emitEvent: false });
+          this.conditionForm
+            .get('conditionResolverType')
+            ?.setValue(value, { emitEvent: false });
+        }
+
+        lastValue = value;
         this.conditionValue = value;
       });
 
@@ -174,7 +186,9 @@ export class Dialog implements OnInit {
       .get('templateMessageItem')
       ?.valueChanges.subscribe((value) => {
         this.templateMessage = value;
-        this.templateMessageJson = JSON.parse(this.templateMessage.json!);
+        this.templateMessageJson = JSON.parse(
+          this.templateMessage.json ?? '{}'
+        );
       });
   }
 
@@ -201,6 +215,18 @@ export class Dialog implements OnInit {
     this.coreService.getDataList(this.channelId).subscribe((response) => {
       this.templateMessageList = response.templateMessageList.items!;
       this.channelPaths = response.channel.paths!;
+    });
+  }
+
+  private buildForm(config: { [key: string]: any }): FormGroup {
+    return this.fb.group(config);
+  }
+
+  private buildExpectedValues(): PropertyExpectedValue[] {
+    return this.valuesArray.controls.map((control) => {
+      const value = new PropertyExpectedValue();
+      value.init({ value: control.value });
+      return value;
     });
   }
 
@@ -291,7 +317,7 @@ export class Dialog implements OnInit {
                 },
                 conditions: this.conditions.length ? this.conditions : null,
                 property: this.conditionForm.get('property')?.value,
-                expectedValues: this.expectedValues.map((v) => ({
+                expectedValues: this.buildExpectedValues().map((v) => ({
                   value: v.value,
                 })),
                 expected: this.conditionForm.get('expected')?.value,
@@ -408,12 +434,10 @@ export class Dialog implements OnInit {
   }
 
   getConditionTypeName(value: any): string {
-    if (value !== null && value !== undefined) {
-      return this.conditionOperationTypes.find((item) => item.value === value)
-        ?.title!;
-    } else {
-      return '';
-    }
+    return (
+      this.conditionOperationTypes.find((item) => item.value === value)
+        ?.title ?? ''
+    );
   }
 
   addCondition(condition: PropertyValueCondition): void {
