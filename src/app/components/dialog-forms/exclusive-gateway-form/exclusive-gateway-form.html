@@ -1,0 +1,195 @@
+@if(!openAddConditionDialog){
+<form [formGroup]="conditionForm">
+  <mat-form-field class="w-full">
+    <mat-label>Name</mat-label>
+    <input type="text" matInput formControlName="name" placeholder="name" />
+    @if (conditionForm.get('name')?.hasError('required')) {
+    <mat-error>name is <strong>required</strong></mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field class="w-full">
+    <mat-label>افزودن Resolver</mat-label>
+    <mat-select formControlName="conditionResolverType">
+      @for (item of ConditionResolverTypes; track item) {
+      <mat-option [value]="item.value">{{ item.title }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  @if(showConditionForm){ @if(conditionValue !== 0){
+  <mat-form-field class="w-full">
+    <mat-label>پیام</mat-label>
+    <mat-select formControlName="templateMessageItem">
+      @for (item of templateMessageList; track item) {
+      <mat-option [value]="item">{{ item.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+  }
+
+  <mat-form-field class="w-full">
+    <mat-label>کد http status ورودی مورد انتظار</mat-label>
+    <mat-select
+      formControlName="statusItemList"
+      placeholder="وضعیت را انتخاب کنید"
+      multiple
+    >
+      @for (item of statusList; track item) {
+      <mat-option [value]="item">{{ item }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field class="w-full">
+    <mat-label>رنج وضعیت‌ از</mat-label>
+    <mat-select
+      formControlName="statusRangeFrom"
+      placeholder="لطفا یک وضعیت را انتخاب کنید"
+    >
+      @for (item of statusList; track item) {
+      <mat-option [value]="item">{{ item }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field class="w-full">
+    <mat-label>رنج وضعیت‌ تا</mat-label>
+    <mat-select
+      formControlName="statusRangeTo"
+      placeholder="لطفا یک وضعیت را انتخاب کنید"
+    >
+      @for (item of statusList; track item) {
+      <mat-option [value]="item">{{ item }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field class="w-full">
+    <mat-label>وضعیت ها</mat-label>
+    <mat-select
+      formControlName="statusItem"
+      placeholder="لطفا یک وضعیت را انتخاب کنید"
+    >
+      @for (item of statusList; track item) {
+      <mat-option [value]="item">{{ item }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field class="w-full">
+    <mat-label>نام وضعیت</mat-label>
+    <input
+      type="text"
+      matInput
+      formControlName="statusName"
+      placeholder="نام وضعیت"
+    />
+    @if (conditionForm.get('statusName')?.hasError('required')) {
+    <mat-error>Status name is <strong>required</strong></mat-error>
+    }
+  </mat-form-field>
+
+  @if(conditionValue === 1){
+  <mat-form-field class="w-full">
+    <mat-label>Condition Relationship</mat-label>
+    <mat-select formControlName="conditionRelationship">
+      @for (item of ConditionRelationshipTypes; track item) {
+      <mat-option [value]="item.value">{{ item.title }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <div class="condition-list">
+    @if (conditions.length > 0) { @for (item of conditions; track $index) {
+    <div class="condition-item">
+      <div class="condition-info">
+        <div>
+          Value: <span> {{ item.value }}</span>
+        </div>
+        <div>
+          Condition Type:
+          <span>{{ getConditionTypeName(item.conditionOperator) }}</span>
+        </div>
+        <div class="col-3">
+          Feature Name: <span>{{ item.property }}</span>
+        </div>
+      </div>
+      <div class="condition-action">
+        <button
+          (click)="onDeleteConditionClick($index)"
+          matMiniFab
+          aria-label="Example icon button with a delete icon"
+        >
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </div>
+    } }
+  </div>
+
+  <div class="mt-2">
+    <button
+      matButton
+      (click)="openAddConditionDialog = true"
+      [disabled]="!templateMessage"
+    >
+      Add condition
+    </button>
+  </div>
+
+  } @if (conditionValue === 2 && templateMessageJson) {
+  <hr />
+  <div class="row">
+    <div class="col-12">
+      <app-select-json-tree
+        [data]="templateMessageJson"
+        (selectKey)="selectKey($event)"
+      ></app-select-json-tree>
+    </div>
+  </div>
+  @if (selectedKey) {
+  <div class="row">
+    <div class="col-6">
+      <mat-form-field class="w-full">
+        <mat-label>مقادیر مورد انتظار</mat-label>
+
+        <mat-chip-grid #chipGrid formArrayName="values">
+          @for (keyword of valuesArray.controls; track $index) {
+          <mat-chip-row (removed)="removeKeyword(keyword.value)">
+            {{ keyword.value }}
+            <button matChipRemove [attr.aria-label]="'remove ' + keyword.value">
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </mat-chip-row>
+          }
+        </mat-chip-grid>
+
+        <input
+          [matChipInputFor]="chipGrid"
+          placeholder="مقدار را وارد کنید"
+          (matChipInputTokenEnd)="add($event)"
+        />
+      </mat-form-field>
+    </div>
+
+    <div class="col-6">
+      <div class="d-flex justify-content-between w-100 inputSwitch-container">
+        <p>
+          <mat-slide-toggle formControlName="expected"
+            >مورد انتظار</mat-slide-toggle
+          >
+        </p>
+      </div>
+    </div>
+  </div>
+  } } }
+</form>
+} @else {
+<app-add-condition
+  [visible]="openAddConditionDialog"
+  (hideDialog)="openAddConditionDialog = false"
+  (addCondition)="addCondition($event)"
+  [templateMessageJson]="templateMessage.json"
+/>
+}

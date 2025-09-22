@@ -1,26 +1,20 @@
 import { Component, EventEmitter, Inject, Input, Output } from '@angular/core';
 
-import { CoreService, ValueItem } from '../../service/core.service';
-import { PropertyValueCondition } from '../../proxy/Integration';
-import { HelpService } from '../../service/help.service';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
 import {
   MAT_DIALOG_DATA,
   MatDialogActions,
-  MatDialogClose,
   MatDialogContent,
   MatDialogRef,
-  MatDialogTitle,
 } from '@angular/material/dialog';
-import { SelectJsonTreeComponent } from '../select-json-tree/select-json-tree.component';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import {
-  MatOption,
-  MatSelect,
-  MatSelectModule,
-} from '@angular/material/select';
-import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { PropertyValueCondition } from '../../proxy/Integration';
+import { CoreService, ValueItem } from '../../service/core.service';
+import { HelpService } from '../../service/help.service';
+import { SelectJsonTreeComponent } from '../select-json-tree/select-json-tree.component';
 
 @Component({
   selector: 'app-add-condition',
@@ -28,8 +22,6 @@ import { MatInputModule } from '@angular/material/input';
   styleUrl: './add-condition.component.scss',
   standalone: true,
   imports: [
-    MatDialogContent,
-    MatDialogActions,
     MatButtonModule,
     MatInputModule,
     FormsModule,
@@ -59,8 +51,6 @@ export class AddConditionComponent {
         (item) => item.name === 'ConditionOperation'
       )?.valueItems!;
     });
-
-    console.log(this.templateMessageJson);
   }
 
   ngOnInit(): void {
@@ -80,11 +70,10 @@ export class AddConditionComponent {
     this.helpService.setActiveFieldTree('');
   }
   onCancel(): void {
-    this.dialogRef.close();
+    this.addCondition.emit(undefined);
   }
 
   onSubmit(): void {
-    // this.dialogRef.close(this.condition);
     this.addCondition.emit(this.condition);
   }
 }

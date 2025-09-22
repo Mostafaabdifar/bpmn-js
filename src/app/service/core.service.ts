@@ -9,7 +9,12 @@ import {
   tap,
 } from 'rxjs';
 import { environment } from '../environments/environment';
-import { ChannelClient, MappingClient, TemplateMessageClient } from '../proxy/Integration';
+import {
+  ChannelClient,
+  MappingClient,
+  TemplateMessageClient,
+} from '../proxy/Integration';
+import { FormGroup } from '@angular/forms';
 export interface IEnumItem {
   name: string;
   title: string;
@@ -24,12 +29,20 @@ export interface ValueItem {
   icon: string | null;
 }
 
+interface FormData {
+  form: FormGroup;
+  type: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class CoreService {
   dataSubject = new BehaviorSubject<IEnumItem[]>([]);
   private dataListCache$: Observable<any> | null = null;
+
+  private formSubject = new BehaviorSubject<FormData | null>(null);
+  form$ = this.formSubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -68,5 +81,18 @@ export class CoreService {
 
   clearDataListCache(): void {
     this.dataListCache$ = null;
+  }
+
+  // Form service
+  setForm(form: FormGroup, type: string) {
+    this.formSubject.next({ form, type });
+  }
+
+  getForm(): FormData | null {
+    return this.formSubject.getValue();
+  }
+
+  resetForm() {
+    this.formSubject.next(null);
   }
 }

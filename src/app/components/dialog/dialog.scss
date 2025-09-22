@@ -2,59 +2,5 @@
   width: 100%;
 }
 
-.json-viewer {
-  direction: ltr;
-  background: #1e1e1e;
-  color: #d4d4d4;
-  border-radius: 8px;
-  padding: 1rem;
-  font-family: "Fira Code", monospace;
-  font-size: 14px;
-  line-height: 1.5;
-  overflow: auto;
-  margin-bottom: 16px;
-  height: 150px;
 
-  pre {
-    margin: 0;
-    white-space: pre;
-  }
 
-  .key {
-    color: #9cdcfe;
-  }
-  .string {
-    color: #ce9178;
-  }
-  .number {
-    color: #b5cea8;
-  }
-  .boolean {
-    color: #569cd6;
-  }
-  .null {
-    color: #c586c0;
-  }
-  .error {
-    color: #f44747;
-    font-weight: bold;
-  }
-}
-
-.condition-list {
-  display: flex;
-  flex-direction: column;
-
-  .condition-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #ddd;
-    padding: 8px;
-    border-radius: 10px;
-    margin: 8px 0;
-    span {
-      font-weight: bold;
-    }
-  }
-}

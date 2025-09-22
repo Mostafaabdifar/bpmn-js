@@ -1,0 +1,25 @@
+<form [formGroup]="mapperForm">
+  <mat-form-field class="w-full">
+    <mat-label>Name</mat-label>
+    <input type="text" matInput formControlName="name" placeholder="name" />
+    @if (mapperForm.get('name')?.hasError('required')) {
+    <mat-error>name is <strong>required</strong></mat-error>
+    }
+  </mat-form-field>
+  <mat-form-field class="w-full">
+    <mat-label>Message Mapping</mat-label>
+    <mat-select formControlName="messageMappingId">
+      @for (item of messageMappingLists; track item) {
+      <mat-option [value]="item.id">{{ item.name }}</mat-option>
+      }
+    </mat-select>
+    @if (mapperForm.get('name')?.hasError('required')) {
+    <mat-error>Message mapping is <strong>required</strong></mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field class="w-full">
+    <mat-label>Description</mat-label>
+    <textarea matInput formControlName="description"></textarea>
+  </mat-form-field>
+</form>

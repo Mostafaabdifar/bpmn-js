@@ -1,0 +1,109 @@
+ <form [formGroup]="apiForm">
+    <mat-form-field class="w-full">
+      <mat-label>Name</mat-label>
+      <input
+        type="text"
+        matInput
+        formControlName="name"
+        placeholder="Condition Name"
+      />
+      @if (apiForm.get('name')?.hasError('required')) {
+      <mat-error>Name is <strong>required</strong></mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field class="w-full">
+      <mat-label>Base Url</mat-label>
+      <input
+        type="text"
+        matInput
+        formControlName="baseUrl"
+        placeholder="Base Url"
+      />
+      @if (apiForm.get('conditionLabel')?.hasError('required')) {
+      <mat-error>Base Url is <strong>required</strong></mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field class="w-full">
+      <mat-label>Path</mat-label>
+      <input type="text" matInput formControlName="path" placeholder="Path" />
+      @if (apiForm.get('conditionLabel')?.hasError('required')) {
+      <mat-error>Path is <strong>required</strong></mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field class="w-full">
+      <mat-label>Http Method Type</mat-label>
+      <mat-select formControlName="httpMethodType">
+        @for (item of HttpMethodTypes; track item) {
+        <mat-option [value]="item.value">{{ item.title }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field class="w-full">
+      <mat-label>Timeout</mat-label>
+      <input
+        type="number"
+        matInput
+        formControlName="timeout"
+        placeholder="Timeout"
+      />
+      @if (apiForm.get('conditionLabel')?.hasError('required')) {
+      <mat-error>Timeout is <strong>required</strong></mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field class="w-full">
+      <mat-label>Query</mat-label>
+      <input type="text" matInput formControlName="query" placeholder="Query" />
+      @if (apiForm.get('conditionLabel')?.hasError('required')) {
+      <mat-error>Query is <strong>required</strong></mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field class="w-full">
+      <mat-label>Body</mat-label>
+      <textarea
+        matInput
+        formControlName="body"
+        rows="6"
+        placeholder="Enter JSON"
+      ></textarea>
+      @if (apiForm.get('body')?.hasError('required')) {
+      <mat-error>Body is <strong>required</strong></mat-error>
+      }
+    </mat-form-field>
+
+    <div class="json-viewer">
+      <pre [innerHTML]="apiForm.get('body')?.value | jsonPretty"></pre>
+    </div>
+
+    <mat-form-field class="w-full">
+      <mat-label>Auth Http Type</mat-label>
+      <mat-select formControlName="authHttpType">
+        @for (item of AuthHttpTypes; track item) {
+        <mat-option [value]="item.value">{{ item.title }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field class="w-full">
+      <mat-label>Auth Http Value</mat-label>
+      <input
+        type="text"
+        matInput
+        formControlName="authHttpValue"
+        placeholder="Auth Http Value"
+      />
+      @if (apiForm.get('conditionLabel')?.hasError('required')) {
+      <mat-error>Auth Http Value is <strong>required</strong></mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field class="w-full">
+      <mat-label>Http Headers</mat-label>
+      <input
+        type="text"
+        matInput
+        formControlName="httpHeaders"
+        placeholder="Http Headers"
+      />
+      @if (apiForm.get('conditionLabel')?.hasError('required')) {
+      <mat-error>Http Headers is <strong>required</strong></mat-error>
+      }
+    </mat-form-field>
+  </form>
