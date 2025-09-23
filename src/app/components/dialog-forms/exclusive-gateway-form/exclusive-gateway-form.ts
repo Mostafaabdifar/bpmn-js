@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import {
+  FormArray,
   FormBuilder,
   FormGroup,
   ReactiveFormsModule,
@@ -12,10 +13,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import {
-  ConditionResolverItem,
-  PropertyValueCondition,
-} from '../../../proxy/Integration';
+import { ConditionResolverItem } from '../../../proxy/Integration';
 import { CoreService, ValueItem } from '../../../service/core.service';
 import { AddResolver } from '../../add-resolver/add-resolver';
 
@@ -45,25 +43,9 @@ export class ExclusiveGatewayForm {
   constructor(private fb: FormBuilder, private coreService: CoreService) {
     this.conditionForm = this.fb.group({
       name: ['', Validators.required],
-      conditionResolverType: ['', Validators.required],
-      statusItemList: [[''], Validators.required],
-      statusItem: ['', Validators.required],
-      statusName: ['', Validators.required],
-      statusRangeFrom: ['', Validators.required],
-      statusRangeTo: ['', Validators.required],
-      templateMessageItem: [''],
-      actions: [''],
-      conditionRelationship: [null],
-      description: [''],
-      property: [''],
-      conditions: [''],
-      values: this.fb.array<string>([]),
-      expected: [false],
-      expectedValues: [''],
-      type: [0],
+      resolvers: [[], Validators.required],
+      conditionResolverType: [''],
     });
-
-    this.coreService.setForm(this.conditionForm, 'ExclusiveGateway');
 
     this.conditionForm
       .get('conditionResolverType')
@@ -81,11 +63,28 @@ export class ExclusiveGatewayForm {
     });
   }
 
+  get resolversArray() {
+    return this.conditionForm.get('resolvers');
+  }
+
   addResolver(resolver: ConditionResolverItem | undefined): void {
-    console.log(resolver);
     if (resolver) {
+      resolver.priority = this.resolvers.length + 1;
       this.resolvers.push(resolver);
+      this.conditionForm.get('resolvers')?.setValue(this.resolvers);
+      this.coreService.setForm(this.conditionForm, 'ExclusiveGateway');
+      this.conditionForm.get('conditionResolverType')?.reset();
+    } else {
+      this.conditionForm.reset();
     }
     this.showAddResolver = false;
+  }
+
+  onDeleteResolverClick(index: number): void {
+    this.resolvers.splice(index, 1);
+    if (this.resolvers.length === 0) {
+      this.conditionForm.get('name')?.reset();
+    }
+    this.coreService.setForm(this.conditionForm, 'ExclusiveGateway');
   }
 }

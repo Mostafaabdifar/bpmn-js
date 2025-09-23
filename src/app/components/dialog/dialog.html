@@ -9,6 +9,13 @@
 
   <mat-dialog-actions align="center">
     <button mat-button mat-dialog-close>Cancel</button>
-    <button mat-flat-button color="primary" (click)="onOkClick()" [disabled]="(coreService.form$ | async)?.form?.invalid">Save</button>
+    <button
+      mat-flat-button
+      color="primary"
+      (click)="onOkClick()"
+      [disabled]="isFormInvalid$ | async"
+    >
+      Save
+    </button>
   </mat-dialog-actions>
 </div>

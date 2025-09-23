@@ -1,6 +1,6 @@
 import { CommonModule, NgComponentOutlet } from '@angular/common';
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
-import { FormArray, FormGroup } from '@angular/forms';
+import { FormGroup } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import {
   MAT_DIALOG_DATA,
@@ -10,7 +10,7 @@ import {
   MatDialogRef,
   MatDialogTitle,
 } from '@angular/material/dialog';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import {
   AttachChannelPathApiCallingBasedCommand,
   AttachChannelPathCompleteBasedCommand,
@@ -21,13 +21,13 @@ import {
   PropertyExpectedValue,
   PropertyValueCondition,
 } from '../../proxy/Integration';
-import { CoreService, ValueItem } from '../../service/core.service';
+import { CoreService } from '../../service/core.service';
+import { CustomEndEventForm } from '../dialog-forms/custom-end-event-form/custom-end-event-form';
 import { CustomTaskForm } from '../dialog-forms/custom-task-form/custom-task-form';
 import { EndEventForm } from '../dialog-forms/end-event-form/end-event-form';
 import { ExclusiveGatewayForm } from '../dialog-forms/exclusive-gateway-form/exclusive-gateway-form';
 import { StartEventForm } from '../dialog-forms/start-event-form/start-event-form';
 import { TaskForm } from '../dialog-forms/task-form/task-form';
-import { CustomEndEventForm } from '../dialog-forms/custom-end-event-form/custom-end-event-form';
 export interface DialogData {
   label: string;
   typeAction: string;
@@ -74,6 +74,7 @@ export class Dialog implements OnInit {
   expectedValues: PropertyExpectedValue[] = [];
 
   conditionValue!: number;
+  isFormInvalid$: Observable<boolean>;
 
   constructor(
     private channelClient: ChannelClient,
@@ -81,6 +82,9 @@ export class Dialog implements OnInit {
     private cdr: ChangeDetectorRef
   ) {
     this.FormComponent = this.formMap[this.data.typeAction] || null;
+    this.isFormInvalid$ = this.coreService.form$.pipe(
+      map((formData) => !formData || formData.form.invalid)
+    );
   }
 
   ngOnInit(): void {
@@ -138,27 +142,7 @@ export class Dialog implements OnInit {
           beforeChannelPathId: null,
           commandId: null,
           actions: null,
-          resolvers: [
-            {
-              expectedIncomingHttpResponseStatuses:
-                this.childForm.value['statusItemList'],
-              outgoingHttpResponseStatus: this.childForm.value['statusItem'],
-              actions: this.childForm.value['actions'],
-              statusName: this.childForm.value['statusName'],
-              conditionRelationship:
-                this.childForm.value['conditionRelationship'],
-              type: this.childForm.value['type'],
-              expectedIncomingHttpStatusRangeCode: {
-                from: this.childForm.value['statusRangeFrom'],
-                to: this.childForm.value['statusRangeTo'],
-              },
-              conditions: this.childForm.value['conditions'],
-              property: this.childForm.value['property'],
-              expectedValues: this.childForm.value['expectedValues'],
-
-              expected: this.childForm.value['expected'],
-            },
-          ],
+          resolvers: this.childForm.value['resolvers'],
         },
         attach: this.attachCondition,
         service: this.channelClient.attachPathConditionBased.bind(

@@ -17,7 +17,46 @@
     </mat-select>
   </mat-form-field>
 </form>
-} @else {
+@if(resolvers.length > 0){
+<div class="resolver-list">
+  @for (item of resolvers; track $index) {
+  <div class="resolver-item">
+    <div class="resolver-info">
+      <div>
+        Name: <span> {{ item.statusName }}</span>
+      </div>
+      <div>
+        Type:
+        <span>{{ item.type }}</span>
+      </div>
+      <div>
+        Expected: <span>{{ item.expected }}</span>
+      </div>
+      <div>
+        Range Status From:
+        <span> {{ item.expectedIncomingHttpStatusRangeCode?.from }}</span>
+      </div>
+      <div>
+        Range Status To:
+        <span> {{ item.expectedIncomingHttpStatusRangeCode?.to }} </span>
+      </div>
+      <div>
+        Http Response Status: <span>{{ item.outgoingHttpResponseStatus }}</span>
+      </div>
+    </div>
+    <div class="condition-action">
+      <button
+        (click)="onDeleteResolverClick($index)"
+        matMiniFab
+        aria-label="Example icon button with a delete icon"
+      >
+        <mat-icon>delete</mat-icon>
+      </button>
+    </div>
+  </div>
+  }
+</div>
+} } @else {
 <app-add-resolver
   [conditionValue]="conditionValue"
   (addResolver)="addResolver($event)"
