@@ -79,6 +79,7 @@ export class ExclusiveGatewayForm {
       this.conditionForm.get('conditionResolverType')?.reset();
     } else {
       this.conditionForm.reset();
+      this.coreService.setForm(this.conditionForm, 'ExclusiveGateway');
     }
     this.showAddResolver = false;
   }

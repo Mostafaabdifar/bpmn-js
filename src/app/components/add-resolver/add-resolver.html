@@ -169,17 +169,6 @@
   } }
 </form>
 
-<div class="action">
-  <button mat-button color="warn" (click)="onCancel()">Back</button>
-  <button
-    mat-flat-button
-    color="primary"
-    (click)="onSubmit()"
-    [disabled]="resolverForm.invalid"
-  >
-    Create resolver
-  </button>
-</div>
 } @else{
 <app-add-condition
   [visible]="openAddConditionDialog"

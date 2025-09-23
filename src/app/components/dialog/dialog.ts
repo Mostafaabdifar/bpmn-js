@@ -10,7 +10,7 @@ import {
   MatDialogRef,
   MatDialogTitle,
 } from '@angular/material/dialog';
-import { map, Observable, startWith } from 'rxjs';
+import { delay, map, Observable, startWith } from 'rxjs';
 import {
   AttachChannelPathApiCallingBasedCommand,
   AttachChannelPathCompleteBasedCommand,
@@ -75,6 +75,7 @@ export class Dialog implements OnInit {
 
   conditionValue!: number;
   isFormInvalid$!: Observable<boolean>;
+  actions$!: Observable<any>;
 
   constructor(
     private channelClient: ChannelClient,
@@ -83,6 +84,7 @@ export class Dialog implements OnInit {
   ) {
     this.FormComponent = this.formMap[this.data.typeAction] || null;
     this.channelId = this.coreService.getChannelId();
+    this.actions$ = this.coreService.actions$.pipe(delay(0));
   }
 
   ngOnInit(): void {

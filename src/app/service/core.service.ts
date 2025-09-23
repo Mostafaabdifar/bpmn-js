@@ -34,6 +34,15 @@ interface FormData {
   type: string;
 }
 
+export interface DialogActionButton {
+  id: string;
+  label: string;
+  color?: 'primary' | 'accent' | 'warn';
+  variant?: 'flat' | 'stroked' | 'basic';
+  disabled$?: Observable<boolean>;
+  click?: () => void;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -46,6 +55,9 @@ export class CoreService {
 
   // Central channel id holder (replace with dynamic source when available)
   private channelId: string = '91eff4bb-805e-441a-83be-bfb85e17c11e';
+
+  private actionsSubject = new BehaviorSubject<DialogActionButton[]>([]);
+  actions$ = this.actionsSubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -86,7 +98,7 @@ export class CoreService {
     this.dataListCache$ = null;
   }
 
-  // Form service
+  // Form 
   setForm(form: FormGroup, type: string) {
     this.formSubject.next({ form, type });
   }
@@ -101,5 +113,14 @@ export class CoreService {
 
   getChannelId(): string {
     return this.channelId;
+  }
+
+  // Actions 
+  setActions(actions: DialogActionButton[]) {
+    this.actionsSubject.next(actions ?? []);
+  }
+
+  clearActions() {
+    this.actionsSubject.next([]);
   }
 }

@@ -1,18 +1,18 @@
-import { Component, EventEmitter, Inject, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { AfterViewInit, ViewChild } from '@angular/core';
+import { FormsModule, NgForm, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import {
-  MAT_DIALOG_DATA,
-  MatDialogActions,
-  MatDialogContent,
-  MatDialogRef,
-} from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { map, of, startWith } from 'rxjs';
 import { PropertyValueCondition } from '../../proxy/Integration';
-import { CoreService, ValueItem } from '../../service/core.service';
+import {
+  CoreService,
+  DialogActionButton,
+  ValueItem,
+} from '../../service/core.service';
 import { HelpService } from '../../service/help.service';
 import { SelectJsonTreeComponent } from '../select-json-tree/select-json-tree.component';
 
@@ -31,7 +31,7 @@ import { SelectJsonTreeComponent } from '../select-json-tree/select-json-tree.co
     SelectJsonTreeComponent,
   ],
 })
-export class AddConditionComponent {
+export class AddConditionComponent implements AfterViewInit {
   conditionOperationTypes: ValueItem[] = [];
   condition = new PropertyValueCondition();
 
@@ -40,9 +40,11 @@ export class AddConditionComponent {
   @Output() hideDialog = new EventEmitter();
   @Output() addCondition = new EventEmitter<PropertyValueCondition>();
 
+  @ViewChild('createTaskForm') createTaskForm!: NgForm;
+
   constructor(
     private coreService: CoreService,
-    private helpService: HelpService,
+    private helpService: HelpService
   ) {
     this.coreService.dataSubject.subscribe((data) => {
       this.conditionOperationTypes = data.find(
@@ -53,12 +55,40 @@ export class AddConditionComponent {
 
   ngOnInit(): void {
     try {
-      this.templateMessageJson = typeof this.templateMessageJson === 'string'
-        ? JSON.parse(this.templateMessageJson)
-        : this.templateMessageJson;
+      this.templateMessageJson =
+        typeof this.templateMessageJson === 'string'
+          ? JSON.parse(this.templateMessageJson)
+          : this.templateMessageJson;
     } catch {
       this.templateMessageJson = {};
     }
+  }
+
+  ngAfterViewInit(): void {
+    const disabled$ = (this.createTaskForm.statusChanges ?? of(null)).pipe(
+      startWith(this.createTaskForm.status),
+      map(() => !!this.createTaskForm.invalid)
+    );
+
+    const actions: DialogActionButton[] = [
+      {
+        id: 'back',
+        label: 'Back',
+        color: 'warn',
+        variant: 'stroked',
+        click: () => this.onHideDialog(),
+      },
+      {
+        id: 'create-condition',
+        label: 'Create condition',
+        color: 'primary',
+        variant: 'flat',
+        disabled$: disabled$,
+        click: () => this.onSubmit(),
+      },
+    ];
+
+    this.coreService.setActions(actions);
   }
 
   selectKey(key: string) {
@@ -70,14 +100,14 @@ export class AddConditionComponent {
     this.hideDialog.emit();
   }
 
-  ngOnDestroy(): void {
-    this.helpService.setActiveFieldTree('');
-  }
   onCancel(): void {
     this.addCondition.emit(undefined);
   }
 
   onSubmit(): void {
     this.addCondition.emit(this.condition);
+  }
+  ngOnDestroy(): void {
+    this.helpService.setActiveFieldTree('');
   }
 }

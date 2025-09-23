@@ -29,9 +29,10 @@ import {
   PropertyValueCondition,
   TemplateMessageDto,
 } from '../../proxy/Integration';
-import { CoreService, ValueItem } from '../../service/core.service';
+import { CoreService, DialogActionButton, ValueItem } from '../../service/core.service';
 import { LiveAnnouncer } from '@angular/cdk/a11y';
 import { AddConditionComponent } from '../add-condition/add-condition.component';
+import { BehaviorSubject, combineLatest, map, of, startWith } from 'rxjs';
 
 @Component({
   selector: 'app-add-resolver',
@@ -67,7 +68,38 @@ export class AddResolver implements OnInit {
   conditionOperationTypes: ValueItem[] = [];
 
   selectedKey!: string;
-  openAddConditionDialog: boolean = false;
+  private _openAddConditionDialog: boolean = false;
+  get openAddConditionDialog(): boolean {
+    return this._openAddConditionDialog;
+  }
+  set openAddConditionDialog(value: boolean) {
+    this._openAddConditionDialog = value;
+    this.openDialogState$.next(value);
+    if (value) {
+      const placeholder: DialogActionButton[] = [
+        {
+          id: 'back',
+          label: 'Back',
+          color: 'warn',
+          variant: 'stroked',
+          click: () => (this.openAddConditionDialog = false),
+        },
+        {
+          id: 'create-condition',
+          label: 'Create condition',
+          color: 'primary',
+          variant: 'flat',
+          disabled$: of(true),
+          click: () => {},
+        },
+      ];
+      this.coreService.setActions(placeholder);
+    } else {
+      this.updateActions();
+    }
+  }
+
+  private openDialogState$ = new BehaviorSubject<boolean>(false);
 
   statusList = [
     200, 201, 202, 204, 400, 403, 404, 405, 500, 501, 502, 503, 504,
@@ -128,6 +160,39 @@ export class AddResolver implements OnInit {
     this.coreService.getDataList(channelId).subscribe((response) => {
       this.templateMessageList = response.templateMessageList.items!;
     });
+
+    this.updateActions();
+  }
+
+  ngOnDestroy(): void {
+    this.coreService.clearActions();
+  }
+
+  private updateActions() {
+    const disabled$ = combineLatest([
+      this.resolverForm.statusChanges.pipe(startWith(this.resolverForm.status)),
+      this.openDialogState$,
+    ]).pipe(map(() => this.resolverForm.invalid || this.openAddConditionDialog));
+
+    const actions: DialogActionButton[] = [
+      {
+        id: 'back',
+        label: 'Back',
+        color: 'warn',
+        variant: 'stroked',
+        click: () => this.onCancel(),
+      },
+      {
+        id: 'create',
+        label: 'Create resolver',
+        color: 'primary',
+        variant: 'flat',
+        disabled$: disabled$,
+        click: () => this.onSubmit(),
+      },
+    ];
+
+    this.coreService.setActions(actions);
   }
 
   private buildExpectedValues(): PropertyExpectedValue[] {

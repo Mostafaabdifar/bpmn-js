@@ -28,15 +28,3 @@
     </mat-select>
   </mat-form-field>
 </form>
-
-<div class="action">
-  <button mat-button color="warn" (click)="onCancel()">Back</button>
-  <button
-    mat-flat-button
-    color="primary"
-    (click)="onSubmit()"
-    [disabled]="createTaskForm.invalid"
-  >
-    Create condition
-  </button>
-</div>
