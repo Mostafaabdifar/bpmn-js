@@ -43,8 +43,6 @@ export class AddConditionComponent {
   constructor(
     private coreService: CoreService,
     private helpService: HelpService,
-    public dialogRef: MatDialogRef<AddConditionComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.coreService.dataSubject.subscribe((data) => {
       this.conditionOperationTypes = data.find(
@@ -54,7 +52,13 @@ export class AddConditionComponent {
   }
 
   ngOnInit(): void {
-    this.templateMessageJson = JSON.parse(this.templateMessageJson);
+    try {
+      this.templateMessageJson = typeof this.templateMessageJson === 'string'
+        ? JSON.parse(this.templateMessageJson)
+        : this.templateMessageJson;
+    } catch {
+      this.templateMessageJson = {};
+    }
   }
 
   selectKey(key: string) {

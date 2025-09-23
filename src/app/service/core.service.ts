@@ -44,6 +44,9 @@ export class CoreService {
   private formSubject = new BehaviorSubject<FormData | null>(null);
   form$ = this.formSubject.asObservable();
 
+  // Central channel id holder (replace with dynamic source when available)
+  private channelId: string = '91eff4bb-805e-441a-83be-bfb85e17c11e';
+
   constructor(
     private http: HttpClient,
     private channelClient: ChannelClient,
@@ -94,5 +97,9 @@ export class CoreService {
 
   resetForm() {
     this.formSubject.next(null);
+  }
+
+  getChannelId(): string {
+    return this.channelId;
   }
 }

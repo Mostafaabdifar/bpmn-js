@@ -10,7 +10,7 @@ import {
   MatDialogRef,
   MatDialogTitle,
 } from '@angular/material/dialog';
-import { map, Observable } from 'rxjs';
+import { map, Observable, startWith } from 'rxjs';
 import {
   AttachChannelPathApiCallingBasedCommand,
   AttachChannelPathCompleteBasedCommand,
@@ -68,13 +68,13 @@ export class Dialog implements OnInit {
   attachMapper = new AttachChannelPathMapperBasedCommand();
   attachCondition = new AttachChannelPathConditionBasedCommand();
 
-  channelId: string = '91eff4bb-805e-441a-83be-bfb85e17c11e';
+  channelId: string;
 
   conditions: PropertyValueCondition[] = [];
   expectedValues: PropertyExpectedValue[] = [];
 
   conditionValue!: number;
-  isFormInvalid$: Observable<boolean>;
+  isFormInvalid$!: Observable<boolean>;
 
   constructor(
     private channelClient: ChannelClient,
@@ -82,26 +82,31 @@ export class Dialog implements OnInit {
     private cdr: ChangeDetectorRef
   ) {
     this.FormComponent = this.formMap[this.data.typeAction] || null;
-    this.isFormInvalid$ = this.coreService.form$.pipe(
-      map((formData) => !formData || formData.form.invalid)
-    );
+    this.channelId = this.coreService.getChannelId();
   }
 
   ngOnInit(): void {
     this.coreService.form$.subscribe((data) => {
       this.childForm = data?.form!;
       this.formType = data?.type!;
+      if (this.childForm) {
+        this.isFormInvalid$ = this.childForm.statusChanges.pipe(
+          startWith(this.childForm.status),
+          map(() => this.childForm.invalid)
+        );
+      }
       this.cdr.detectChanges();
     });
   }
 
   onOkClick() {
     const type = this.formType;
+    const get = (k: string) => this.childForm.value[k];
     const configMap: Record<string, any> = {
       StartEvent: {
         initData: {
-          name: this.childForm.value['name'],
-          description: this.childForm.value['description'],
+          name: get('name'),
+          description: get('description'),
           channelId: this.channelId,
         },
         attach: this.attachPathStart,
@@ -111,22 +116,22 @@ export class Dialog implements OnInit {
       },
       Task: {
         initData: {
-          name: this.childForm.value['name'],
-          description: this.childForm.value['description'],
+          name: get('name'),
+          description: get('description'),
           beforeChannelPathId: null,
           channelId: this.channelId,
           commandId: null,
           actions: null,
           api: {
-            baseUrl: this.childForm.value['baseUrl'],
-            path: this.childForm.value['path'],
-            httpMethodType: this.childForm.value['httpMethodType'],
-            timeout: this.childForm.value['timeout'],
-            query: this.childForm.value['query'],
-            body: this.childForm.value['body'],
-            authHttpType: this.childForm.value['authHttpType'],
-            authHttpValue: this.childForm.value['authHttpValue'],
-            httpHeaders: this.childForm.value['httpHeaders'],
+            baseUrl: get('baseUrl'),
+            path: get('path'),
+            httpMethodType: get('httpMethodType'),
+            timeout: get('timeout'),
+            query: get('query'),
+            body: get('body'),
+            authHttpType: get('authHttpType'),
+            authHttpValue: get('authHttpValue'),
+            httpHeaders: get('httpHeaders'),
           },
         },
         attach: this.attachAPiCall,
@@ -136,13 +141,13 @@ export class Dialog implements OnInit {
       },
       ExclusiveGateway: {
         initData: {
-          name: this.childForm.value['name'],
-          description: this.childForm.value['description'],
+          name: get('name'),
+          description: get('description'),
           channelId: this.channelId,
           beforeChannelPathId: null,
           commandId: null,
           actions: null,
-          resolvers: this.childForm.value['resolvers'],
+          resolvers: get('resolvers'),
         },
         attach: this.attachCondition,
         service: this.channelClient.attachPathConditionBased.bind(
@@ -151,9 +156,9 @@ export class Dialog implements OnInit {
       },
       CustomEndEvent: {
         initData: {
-          name: this.childForm.value['name'],
-          description: this.childForm.value['description'],
-          completedType: this.childForm.value['completedType'],
+          name: get('name'),
+          description: get('description'),
+          completedType: get('completedType'),
           channelId: this.channelId,
           beforeChannelPathId: null,
           commandId: null,
@@ -166,9 +171,9 @@ export class Dialog implements OnInit {
       },
       CustomTask: {
         initData: {
-          name: this.childForm.value['name'],
-          messageMappingId: this.childForm.value['messageMappingId'],
-          description: this.childForm.value['description'],
+          name: get('name'),
+          messageMappingId: get('messageMappingId'),
+          description: get('description'),
           channelId: this.channelId,
           beforeChannelPathId: null,
           commandId: null,
@@ -181,9 +186,9 @@ export class Dialog implements OnInit {
       },
       EndEvent: {
         initData: {
-          name: this.childForm.value['name'],
-          description: this.childForm.value['description'],
-          completedType: this.childForm.value['completedType'],
+          name: get('name'),
+          description: get('description'),
+          completedType: get('completedType'),
           channelId: this.channelId,
           beforeChannelPathId: null,
           commandId: null,

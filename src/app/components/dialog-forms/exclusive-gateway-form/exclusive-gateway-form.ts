@@ -47,6 +47,9 @@ export class ExclusiveGatewayForm {
       conditionResolverType: [''],
     });
 
+    // Register the form immediately so the dialog can track validity
+    this.coreService.setForm(this.conditionForm, 'ExclusiveGateway');
+
     this.conditionForm
       .get('conditionResolverType')
       ?.valueChanges.subscribe((value) => {

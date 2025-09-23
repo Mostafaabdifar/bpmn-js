@@ -57,7 +57,6 @@ export class AddResolver implements OnInit {
 
   resolverForm: FormGroup;
 
-  channelId: string = '91eff4bb-805e-441a-83be-bfb85e17c11e';
   templateMessage!: TemplateMessageDto;
   templateMessageJson: any;
   resolver = new ConditionResolverItem();
@@ -96,22 +95,6 @@ export class AddResolver implements OnInit {
       type: [0],
     });
 
-    let lastValue: any = null;
-    this.resolverForm
-      .get('conditionResolverType')
-      ?.valueChanges.subscribe((value) => {
-        if (lastValue !== null && value !== lastValue) {
-          this.resolverForm.reset({}, { emitEvent: false });
-          this.resolverForm
-            .get('conditionResolverType')
-            ?.setValue(value, { emitEvent: false });
-        }
-
-        lastValue = value;
-        this.conditionValue = value;
-        this.resolverForm.get('type')?.setValue(this.conditionValue);
-      });
-
     this.resolverForm
       .get('templateMessageItem')
       ?.valueChanges.subscribe((value) => {
@@ -141,7 +124,8 @@ export class AddResolver implements OnInit {
         [];
     });
 
-    this.coreService.getDataList(this.channelId).subscribe((response) => {
+    const channelId = this.coreService.getChannelId();
+    this.coreService.getDataList(channelId).subscribe((response) => {
       this.templateMessageList = response.templateMessageList.items!;
     });
   }
