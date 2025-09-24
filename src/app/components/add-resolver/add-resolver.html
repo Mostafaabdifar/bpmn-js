@@ -12,7 +12,7 @@
   }
 
   <mat-form-field class="w-full">
-    <mat-label>کد http status ورودی مورد انتظار</mat-label>
+    <mat-label>کد وضعیت ورودی مورد انتظار</mat-label>
     <mat-select
       formControlName="statusItemList"
       placeholder="وضعیت را انتخاب کنید"
@@ -25,7 +25,7 @@
   </mat-form-field>
 
   <mat-form-field class="w-full">
-    <mat-label>رنج وضعیت‌ از</mat-label>
+    <mat-label>کد وضعیت ورودی از</mat-label>
     <mat-select
       formControlName="statusRangeFrom"
       placeholder="لطفا یک وضعیت را انتخاب کنید"
@@ -37,7 +37,7 @@
   </mat-form-field>
 
   <mat-form-field class="w-full">
-    <mat-label>رنج وضعیت‌ تا</mat-label>
+    <mat-label>کد وضعیت ورودی تا</mat-label>
     <mat-select
       formControlName="statusRangeTo"
       placeholder="لطفا یک وضعیت را انتخاب کنید"
@@ -49,7 +49,7 @@
   </mat-form-field>
 
   <mat-form-field class="w-full">
-    <mat-label>وضعیت ها</mat-label>
+    <mat-label>کد وضعیت خروجی</mat-label>
     <mat-select
       formControlName="statusItem"
       placeholder="لطفا یک وضعیت را انتخاب کنید"
@@ -75,7 +75,7 @@
 
   @if(conditionValue === 1){
   <mat-form-field class="w-full">
-    <mat-label>Condition Relationship</mat-label>
+    <mat-label>عملگر شرطی</mat-label>
     <mat-select formControlName="conditionRelationship">
       @for (item of ConditionRelationshipTypes; track item) {
       <mat-option [value]="item.value">{{ item.title }}</mat-option>
@@ -88,14 +88,14 @@
     <div class="condition-item">
       <div class="condition-info">
         <div>
-          Value: <span> {{ item.value }}</span>
+          مقدار: <span> {{ item.value }}</span>
         </div>
         <div>
-          Condition Type:
+          نوع شرط:
           <span>{{ getConditionTypeName(item.conditionOperator) }}</span>
         </div>
         <div>
-          Feature Name: <span>{{ item.property }}</span>
+          نام ویژگی: <span>{{ item.property }}</span>
         </div>
       </div>
       <div class="condition-action">
@@ -117,23 +117,21 @@
       (click)="openAddConditionDialog = true"
       [disabled]="!templateMessage"
     >
-      Add condition
+      اضافه کردن شرط
     </button>
   </div>
 
   } @if (conditionValue === 2 && templateMessageJson) {
   <hr />
-  <div class="row">
-    <div class="col-12">
-      <app-select-json-tree
-        [data]="templateMessageJson"
-        (selectKey)="selectKey($event)"
-      ></app-select-json-tree>
-    </div>
+  <div class="mb-2">
+    <app-select-json-tree
+      [data]="templateMessageJson"
+      (selectKey)="selectKey($event)"
+    ></app-select-json-tree>
   </div>
   @if (selectedKey) {
-  <div class="row">
-    <div class="col-6">
+  <div>
+    <div>
       <mat-form-field class="w-full">
         <mat-label>مقادیر مورد انتظار</mat-label>
 
@@ -156,14 +154,12 @@
       </mat-form-field>
     </div>
 
-    <div class="col-6">
-      <div class="d-flex justify-content-between w-100 inputSwitch-container">
-        <p>
-          <mat-slide-toggle formControlName="expected"
-            >مورد انتظار</mat-slide-toggle
-          >
-        </p>
-      </div>
+    <div>
+      <p>
+        <mat-slide-toggle formControlName="expected"
+          >مورد انتظار</mat-slide-toggle
+        >
+      </p>
     </div>
   </div>
   } }

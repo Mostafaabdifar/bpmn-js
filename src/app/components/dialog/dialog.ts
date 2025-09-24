@@ -28,6 +28,7 @@ import { EndEventForm } from '../dialog-forms/end-event-form/end-event-form';
 import { ExclusiveGatewayForm } from '../dialog-forms/exclusive-gateway-form/exclusive-gateway-form';
 import { StartEventForm } from '../dialog-forms/start-event-form/start-event-form';
 import { TaskForm } from '../dialog-forms/task-form/task-form';
+import { TypeTransferPipe } from '../../pipe/type-transfer-pipe';
 export interface DialogData {
   label: string;
   typeAction: string;
@@ -42,6 +43,7 @@ export interface DialogData {
     MatButtonModule,
     MatDialogClose,
     NgComponentOutlet,
+    TypeTransferPipe,
   ],
   templateUrl: './dialog.html',
   styleUrl: './dialog.scss',

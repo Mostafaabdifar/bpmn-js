@@ -1,6 +1,9 @@
 .resolver-list {
   display: flex;
   flex-direction: column;
+  max-height: 350px;
+  overflow: auto;
+  padding: 12px 0;
 
   .resolver-item {
     display: flex;
@@ -14,4 +17,20 @@
       font-weight: bold;
     }
   }
+}
+
+.expected-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  gap: 8px;
+}
+
+.expected-list li::after {
+  content: "-";
+  margin-left: 8px;
+}
+
+.expected-list li:last-child::after {
+  content: "";
 }

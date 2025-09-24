@@ -7,6 +7,8 @@ import {
   OnDestroy,
   OnInit,
   Output,
+  OnChanges,
+  SimpleChanges,
 } from '@angular/core';
 import {
   FormArray,
@@ -65,7 +67,7 @@ import { SelectJsonTreeComponent } from '../select-json-tree/select-json-tree.co
   templateUrl: './add-resolver.html',
   styleUrls: ['./add-resolver.scss'],
 })
-export class AddResolver implements OnInit, OnDestroy {
+export class AddResolver implements OnInit, OnDestroy, OnChanges {
   @Input() conditionValue!: number;
   @Output() addResolver = new EventEmitter<ConditionResolverItem>();
 
@@ -92,14 +94,14 @@ export class AddResolver implements OnInit, OnDestroy {
       const placeholder: DialogActionButton[] = [
         {
           id: 'back',
-          label: 'Back',
+          label: 'بازگشت',
           color: 'warn',
           variant: 'stroked',
           click: () => (this.openAddConditionDialog = false),
         },
         {
           id: 'create-condition',
-          label: 'Create condition',
+          label: 'ایجاد شرط',
           color: 'primary',
           variant: 'flat',
           disabled$: of(true),
@@ -125,7 +127,7 @@ export class AddResolver implements OnInit, OnDestroy {
   constructor(private fb: FormBuilder, private coreService: CoreService) {
     this.resolverForm = this.fb.group({
       statusItemList: [[''], Validators.required],
-      statusItem: ['', Validators.required],
+      statusItem: [''],
       statusName: ['', Validators.required],
       statusRangeFrom: ['', Validators.required],
       statusRangeTo: ['', Validators.required],
@@ -139,7 +141,7 @@ export class AddResolver implements OnInit, OnDestroy {
       values: this.fb.array<string>([]),
       expected: [false],
       expectedValues: [''],
-      type: [0],
+      type: [this.conditionValue],
     });
 
     this.resolverForm
@@ -188,6 +190,13 @@ export class AddResolver implements OnInit, OnDestroy {
     this.updateActions();
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['conditionValue'] && changes['conditionValue'].currentValue != null) {
+      this.resolverForm?.get('type')?.setValue(changes['conditionValue'].currentValue);
+      this.resolverForm?.get('type')?.updateValueAndValidity({ emitEvent: true });
+    }
+  }
+
   ngOnDestroy(): void {
     this.coreService.clearActions();
     this.destroy$.next();
@@ -205,14 +214,14 @@ export class AddResolver implements OnInit, OnDestroy {
     const actions: DialogActionButton[] = [
       {
         id: 'back',
-        label: 'Back',
+        label: 'بازگشت',
         color: 'warn',
         variant: 'stroked',
         click: () => this.onCancel(),
       },
       {
         id: 'create',
-        label: 'Create resolver',
+        label: 'ایجاد resolver',
         color: 'primary',
         variant: 'flat',
         disabled$: disabled$,

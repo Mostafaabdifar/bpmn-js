@@ -1,5 +1,5 @@
-<div>
-  <h2 mat-dialog-title>{{ data.typeAction }} Form</h2>
+<div dir="rtl">
+  <h2 mat-dialog-title>{{ data.typeAction | typeTransfer }}</h2>
 
   <mat-dialog-content>
     @if(FormComponent){
@@ -7,31 +7,32 @@
     }
   </mat-dialog-content>
 
-  <mat-dialog-actions align="center">
-    @let actions = (actions$ | async);
-    @if(actions?.length){
-      @for (btn of actions; track btn.id) {
-        <button
-          [attr.data-id]="btn.id"
-          [disabled]="btn.disabled$ | async"
-          [color]="btn.color || 'primary'"
-          [ngClass]="{'mat-flat-button': (btn.variant || 'flat') === 'flat', 'mat-stroked-button': btn.variant === 'stroked'}"
-          mat-button
-          (click)="btn.click && btn.click()"
-        >
-          {{ btn.label }}
-        </button>
-      }
-    } @else {
-      <button mat-button mat-dialog-close>Cancel</button>
-      <button
-        mat-flat-button
-        color="primary"
-        (click)="onOkClick()"
-        [disabled]="isFormInvalid$ | async"
-      >
-        Save
-      </button>
+  <mat-dialog-actions>
+    @let actions = (actions$ | async); @if(actions?.length){ @for (btn of
+    actions; track btn.id) {
+    <button
+      [attr.data-id]="btn.id"
+      [disabled]="btn.disabled$ | async"
+      [color]="btn.color || 'primary'"
+      [ngClass]="{
+        'mat-flat-button': (btn.variant || 'flat') === 'flat',
+        'mat-stroked-button': btn.variant === 'stroked'
+      }"
+      mat-button
+      (click)="btn.click && btn.click()"
+    >
+      {{ btn.label }}
+    </button>
+    } } @else {
+    <button mat-button mat-dialog-close>بستن</button>
+    <button
+      mat-flat-button
+      color="primary"
+      (click)="onOkClick()"
+      [disabled]="isFormInvalid$ | async"
+    >
+      ذخیره
+    </button>
     }
   </mat-dialog-actions>
 </div>

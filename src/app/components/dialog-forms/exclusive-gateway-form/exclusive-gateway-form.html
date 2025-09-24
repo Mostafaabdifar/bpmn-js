@@ -1,10 +1,10 @@
 @if(!showAddResolver){
 <form [formGroup]="conditionForm">
   <mat-form-field class="w-full">
-    <mat-label>Name</mat-label>
-    <input type="text" matInput formControlName="name" placeholder="name" />
+    <mat-label>نام</mat-label>
+    <input type="text" matInput formControlName="name" placeholder="نام" />
     @if (conditionForm.get('name')?.hasError('required')) {
-    <mat-error>name is <strong>required</strong></mat-error>
+    <mat-error> وارد کردن نام الزامی است</mat-error>
     }
   </mat-form-field>
 
@@ -17,38 +17,76 @@
     </mat-select>
   </mat-form-field>
 </form>
-@if(resolvers.length > 0){
+@if (resolvers.length > 0) {
 <div class="resolver-list">
   @for (item of resolvers; track $index) {
   <div class="resolver-item">
     <div class="resolver-info">
       <div>
-        Name: <span> {{ item.statusName }}</span>
+        نام: <span>{{ item.statusName }}</span>
       </div>
       <div>
-        Type:
-        <span>{{ item.type }}</span>
+        نوع: <span>{{ convertType(item.type!) }}</span>
       </div>
       <div>
-        Expected: <span>{{ item.expected }}</span>
+        کد وضعیت ورودی از:
+        <span>{{ item.expectedIncomingHttpStatusRangeCode?.from }}</span>
       </div>
       <div>
-        Range Status From:
-        <span> {{ item.expectedIncomingHttpStatusRangeCode?.from }}</span>
+        کد وضعیت ورودی تا:
+        <span>{{ item.expectedIncomingHttpStatusRangeCode?.to }}</span>
       </div>
       <div>
-        Range Status To:
-        <span> {{ item.expectedIncomingHttpStatusRangeCode?.to }} </span>
+        کد وضعیت خروجی:
+        <span>{{ item.outgoingHttpResponseStatus }}</span>
+      </div>
+
+      @switch (item.type) { @case (0) { } @case (1) {
+      <div>
+        عملگر شرطی:
+        <span>{{
+          convertConditionRelationship(item.conditionRelationship!)
+        }}</span>
       </div>
       <div>
-        Http Response Status: <span>{{ item.outgoingHttpResponseStatus }}</span>
+        شرط‌ها:
+        <ul>
+          @for (condition of item.conditions; track $index) {
+          <li>
+            <span>ویژگی: {{ condition.property }}</span
+            ><br />
+            <span>مقدار: {{ condition.value }}</span
+            ><br />
+            <span>
+              عملگر:
+              {{ convertConditionOprator(condition.conditionOperator!) }}
+            </span>
+          </li>
+          }
+        </ul>
       </div>
+      } @case (2) {
+      <div>
+        مورد انتظار: <span>{{ item.expected }}</span>
+      </div>
+      <div>
+        ویژگی: <span>{{ item.property }}</span>
+      </div>
+      <div>
+        مقادیر مورد انتظار:
+        <ul class="expected-list">
+          @for (expectValue of item.expectedValues; track $index) {
+          <li>{{ expectValue.value }}</li>
+          }
+        </ul>
+      </div>
+      } }
     </div>
     <div class="condition-action">
       <button
         (click)="onDeleteResolverClick($index)"
         matMiniFab
-        aria-label="Example icon button with a delete icon"
+        aria-label="Delete resolver"
       >
         <mat-icon>delete</mat-icon>
       </button>

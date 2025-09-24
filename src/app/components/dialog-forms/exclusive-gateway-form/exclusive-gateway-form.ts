@@ -3,7 +3,7 @@ import {
   FormBuilder,
   FormGroup,
   ReactiveFormsModule,
-  Validators
+  Validators,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
@@ -37,6 +37,8 @@ export class ExclusiveGatewayForm {
   showAddResolver: boolean = false;
   conditionValue!: number;
   ConditionResolverTypes: ValueItem[] = [];
+  ConditionRelationshipTypes: ValueItem[] = [];
+  conditionOperationTypes: ValueItem[] = [];
   resolvers: ConditionResolverItem[] = [];
 
   constructor(private fb: FormBuilder, private coreService: CoreService) {
@@ -46,7 +48,6 @@ export class ExclusiveGatewayForm {
       conditionResolverType: [''],
     });
 
-    // Register the form immediately so the dialog can track validity
     this.coreService.setForm(this.conditionForm, 'ExclusiveGateway');
 
     this.conditionForm
@@ -62,6 +63,12 @@ export class ExclusiveGatewayForm {
       this.ConditionResolverTypes =
         data.find((item) => item.name === 'ConditionResolverType')
           ?.valueItems ?? [];
+      this.ConditionRelationshipTypes =
+        data.find((item) => item.name === 'ConditionRelationshipType')
+          ?.valueItems ?? [];
+      this.conditionOperationTypes = data.find(
+        (item) => item.name === 'ConditionOperation'
+      )?.valueItems!;
     });
   }
 
@@ -89,5 +96,24 @@ export class ExclusiveGatewayForm {
       this.conditionForm.get('name')?.reset();
     }
     this.coreService.setForm(this.conditionForm, 'ExclusiveGateway');
+  }
+
+  convertType(value: number): string | undefined {
+    const typenName = this.ConditionResolverTypes.find(
+      (item) => item.value === value
+    )?.title;
+    return typenName;
+  }
+  convertConditionRelationship(value: number): string | undefined {
+    const typenName = this.ConditionRelationshipTypes.find(
+      (item) => item.value === value
+    )?.title;
+    return typenName;
+  }
+  convertConditionOprator(value: number): string | undefined {
+    const typenName = this.conditionOperationTypes.find(
+      (item) => item.value === value
+    )?.title;
+    return typenName;
   }
 }

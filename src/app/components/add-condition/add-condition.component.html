@@ -1,10 +1,12 @@
 <form #createTaskForm="ngForm">
-  <app-select-json-tree
-    [data]="templateMessageJson"
-    (selectKey)="selectKey($event)"
-  ></app-select-json-tree>
+  <div class="mb-2">
+    <app-select-json-tree
+      [data]="templateMessageJson"
+      (selectKey)="selectKey($event)"
+    ></app-select-json-tree>
+  </div>
 
-  <mat-form-field appearance="fill" class="w-100">
+  <mat-form-field class="w-full">
     <mat-label>مقدار</mat-label>
     <input
       matInput
@@ -15,7 +17,7 @@
     />
   </mat-form-field>
 
-  <mat-form-field appearance="fill" class="w-100">
+  <mat-form-field class="w-full">
     <mat-label>عملگر شرطی</mat-label>
     <mat-select
       [(ngModel)]="condition.conditionOperator"

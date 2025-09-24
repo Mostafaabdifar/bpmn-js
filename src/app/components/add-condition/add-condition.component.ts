@@ -77,14 +77,14 @@ export class AddConditionComponent implements AfterViewInit, OnInit, OnDestroy {
     const actions: DialogActionButton[] = [
       {
         id: 'back',
-        label: 'Back',
+        label: 'بازگشت',
         color: 'warn',
         variant: 'stroked',
         click: () => this.onHideDialog(),
       },
       {
         id: 'create-condition',
-        label: 'Create condition',
+        label: 'ایجاد شرط',
         color: 'primary',
         variant: 'flat',
         disabled$: disabled$,

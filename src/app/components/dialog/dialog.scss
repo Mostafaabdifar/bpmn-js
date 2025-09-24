@@ -2,5 +2,11 @@
   width: 100%;
 }
 
+.mat-mdc-dialog-title {
+  font-size: 20px;
+  font-weight: bold;
+}
 
-
+.mat-mdc-dialog-actions {
+  justify-content: space-evenly;
+}

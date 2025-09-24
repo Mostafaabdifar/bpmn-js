@@ -1,19 +1,14 @@
 <form [formGroup]="startForm">
   <mat-form-field class="w-full">
-    <mat-label>Name</mat-label>
-    <input
-      type="text"
-      matInput
-      formControlName="name"
-      placeholder="Event Name"
-    />
+    <mat-label>نام</mat-label>
+    <input type="text" matInput formControlName="name" placeholder="نام" />
     @if (startForm.get('name')?.hasError('required')) {
-    <mat-error>name is <strong>required</strong></mat-error>
+    <mat-error> وارد کردن نام الزامی است</mat-error>
     }
   </mat-form-field>
 
   <mat-form-field class="w-full">
-    <mat-label>Description</mat-label>
+    <mat-label>توضیحات</mat-label>
     <textarea matInput formControlName="description"></textarea>
   </mat-form-field>
 </form>

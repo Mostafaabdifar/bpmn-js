@@ -1,14 +1,14 @@
-  <form [formGroup]="completeForm">
-    <mat-form-field class="w-full">
-      <mat-label>Name</mat-label>
-      <input type="text" matInput formControlName="name" placeholder="name" />
-      @if (completeForm.get('name')?.hasError('required')) {
-      <mat-error>name is <strong>required</strong></mat-error>
-      }
-    </mat-form-field>
+<form [formGroup]="completeForm">
+  <mat-form-field class="w-full">
+    <mat-label>نام</mat-label>
+    <input type="text" matInput formControlName="name" placeholder="نام" />
+    @if (completeForm.get('name')?.hasError('required')) {
+    <mat-error> وارد کردن نام الزامی است</mat-error>
+    }
+  </mat-form-field>
 
-    <mat-form-field class="w-full">
-      <mat-label>Description</mat-label>
-      <textarea matInput formControlName="description"></textarea>
-    </mat-form-field>
-  </form>
+  <mat-form-field class="w-full">
+    <mat-label>توضیحات</mat-label>
+    <textarea matInput formControlName="description"></textarea>
+  </mat-form-field>
+</form>
