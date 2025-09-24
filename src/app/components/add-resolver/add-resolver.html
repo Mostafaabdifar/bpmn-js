@@ -1,5 +1,11 @@
 @if(!openAddConditionDialog){
 <form [formGroup]="resolverForm">
+  <div class="mt-1" style="display:flex; justify-content:center; margin-bottom:8px;">
+    <mat-radio-group [value]="resolverForm.get('statusMode')?.value" (change)="resolverForm.get('statusMode')?.setValue($event.value)">
+      <mat-radio-button [value]="'list'">انتخاب از لیست</mat-radio-button>
+      <mat-radio-button [value]="'range'" class="ml-3">انتخاب بازه</mat-radio-button>
+    </mat-radio-group>
+  </div>
   @if(conditionValue !== 0){
   <mat-form-field class="w-full">
     <mat-label>پیام</mat-label>

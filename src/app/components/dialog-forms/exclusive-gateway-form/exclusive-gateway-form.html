@@ -28,26 +28,34 @@
       <div>
         نوع: <span>{{ convertType(item.type!) }}</span>
       </div>
-      @if (item.expectedIncomingHttpStatusRangeCode?.from) {
+      @if (item.expectedIncomingHttpResponseStatuses?.length! > 0) {
+      <div>
+        کدهای وضعیت ورودی مورد انتظار:
+        <ul class="expected-list">
+          @for (expectIncomeValue of item.expectedIncomingHttpResponseStatuses;
+          track $index) {
+          <li>
+            <b>{{ expectIncomeValue }}</b>
+          </li>
+          }
+        </ul>
+      </div>
+      } @if (item.expectedIncomingHttpStatusRangeCode?.from) {
       <div>
         کد وضعیت ورودی از:
         <span>{{ item.expectedIncomingHttpStatusRangeCode?.from }}</span>
       </div>
-      }
-      @if (item.expectedIncomingHttpStatusRangeCode?.to) {
+      } @if (item.expectedIncomingHttpStatusRangeCode?.to) {
       <div>
         کد وضعیت ورودی تا:
         <span>{{ item.expectedIncomingHttpStatusRangeCode?.to }}</span>
       </div>
-      }
-      @if (item.outgoingHttpResponseStatus) {
+      } @if (item.outgoingHttpResponseStatus) {
       <div>
         کد وضعیت خروجی:
         <span>{{ item.outgoingHttpResponseStatus }}</span>
       </div>
-      }
-
-      @switch (item.type) { @case (0) { } @case (1) {
+      } @switch (item.type) { @case (0) { } @case (1) {
       <div>
         عملگر شرطی:
         <span>{{
@@ -82,7 +90,9 @@
         مقادیر مورد انتظار:
         <ul class="expected-list">
           @for (expectValue of item.expectedValues; track $index) {
-          <li><b>{{ expectValue.value }}</b></li>
+          <li>
+            <b>{{ expectValue.value }}</b>
+          </li>
           }
         </ul>
       </div>

@@ -27,6 +27,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatRadioModule } from '@angular/material/radio';
 import {
   BehaviorSubject,
   combineLatest,
@@ -63,6 +64,7 @@ import { SelectJsonTreeComponent } from '../select-json-tree/select-json-tree.co
     MatIconModule,
     FormsModule,
     MatButtonModule,
+    MatRadioModule,
     SelectJsonTreeComponent,
     AddConditionComponent,
   ],
@@ -129,6 +131,7 @@ export class AddResolver implements OnInit, OnDestroy, OnChanges {
   constructor(private fb: FormBuilder, private coreService: CoreService) {
     this.resolverForm = this.fb.group(
       {
+        statusMode: ['list'],
         statusItemList: [[]],
         statusItem: [''],
         statusName: ['', Validators.required],
@@ -186,6 +189,7 @@ export class AddResolver implements OnInit, OnDestroy, OnChanges {
           rangeToControl?.reset('', { emitEvent: false });
           rangeFromControl?.disable({ emitEvent: false });
           rangeToControl?.disable({ emitEvent: false });
+          this.resolverForm.get('statusMode')?.setValue('list', { emitEvent: false });
         } else {
           // Enable range if list empty and no range chosen yet
           rangeFromControl?.enable({ emitEvent: false });
@@ -200,6 +204,7 @@ export class AddResolver implements OnInit, OnDestroy, OnChanges {
         // Disable and clear list
         statusItemListControl?.reset([], { emitEvent: false });
         statusItemListControl?.disable({ emitEvent: false });
+        this.resolverForm.get('statusMode')?.setValue('range', { emitEvent: false });
       } else {
         statusItemListControl?.enable({ emitEvent: false });
       }
@@ -212,6 +217,18 @@ export class AddResolver implements OnInit, OnDestroy, OnChanges {
     rangeToControl?.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(handleRangeChange);
+
+    // React to explicit mode change from radio buttons
+    this.resolverForm
+      .get('statusMode')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((mode: 'list' | 'range') => {
+        if (mode === 'list') {
+          this.switchToList();
+        } else if (mode === 'range') {
+          this.switchToRange();
+        }
+      });
   }
 
   ngOnInit(): void {
@@ -297,6 +314,42 @@ export class AddResolver implements OnInit, OnDestroy, OnChanges {
       const hasRange = !!from || !!to;
       return hasList || hasRange ? null : { requireStatusOrRange: true };
     };
+  }
+
+  // Allow user to switch back to list selection explicitly
+  switchToList(): void {
+    const statusItemListControl = this.resolverForm.get('statusItemList');
+    const rangeFromControl = this.resolverForm.get('statusRangeFrom');
+    const rangeToControl = this.resolverForm.get('statusRangeTo');
+
+    rangeFromControl?.reset('', { emitEvent: false });
+    rangeToControl?.reset('', { emitEvent: false });
+    rangeFromControl?.disable({ emitEvent: false });
+    rangeToControl?.disable({ emitEvent: false });
+
+    statusItemListControl?.enable({ emitEvent: false });
+    // keep existing list values cleared to force fresh selection
+    statusItemListControl?.reset([], { emitEvent: false });
+
+    this.resolverForm.updateValueAndValidity({ emitEvent: false });
+  }
+
+  // Allow user to switch back to range selection explicitly
+  switchToRange(): void {
+    const statusItemListControl = this.resolverForm.get('statusItemList');
+    const rangeFromControl = this.resolverForm.get('statusRangeFrom');
+    const rangeToControl = this.resolverForm.get('statusRangeTo');
+
+    statusItemListControl?.reset([], { emitEvent: false });
+    statusItemListControl?.disable({ emitEvent: false });
+
+    rangeFromControl?.enable({ emitEvent: false });
+    rangeToControl?.enable({ emitEvent: false });
+    // clear previous range to force fresh selection
+    rangeFromControl?.reset('', { emitEvent: false });
+    rangeToControl?.reset('', { emitEvent: false });
+
+    this.resolverForm.updateValueAndValidity({ emitEvent: false });
   }
 
   get valuesArray(): FormArray {

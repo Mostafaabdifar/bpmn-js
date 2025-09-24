@@ -27,10 +27,5 @@
 }
 
 .expected-list li::after {
-  content: "-";
   margin-left: 8px;
-}
-
-.expected-list li:last-child::after {
-  content: "";
 }
