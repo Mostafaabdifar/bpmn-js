@@ -1,10 +1,9 @@
 import { Component } from '@angular/core';
 import {
-  FormArray,
   FormBuilder,
   FormGroup,
   ReactiveFormsModule,
-  Validators,
+  Validators
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
@@ -31,7 +30,7 @@ import { AddResolver } from '../../add-resolver/add-resolver';
     AddResolver,
   ],
   templateUrl: './exclusive-gateway-form.html',
-  styleUrl: './exclusive-gateway-form.scss',
+  styleUrls: ['./exclusive-gateway-form.scss'],
 })
 export class ExclusiveGatewayForm {
   conditionForm: FormGroup;

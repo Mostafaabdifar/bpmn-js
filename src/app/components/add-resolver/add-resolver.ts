@@ -1,8 +1,10 @@
+import { LiveAnnouncer } from '@angular/cdk/a11y';
 import {
   Component,
   EventEmitter,
   inject,
   Input,
+  OnDestroy,
   OnInit,
   Output,
 } from '@angular/core';
@@ -21,7 +23,15 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { SelectJsonTreeComponent } from '../select-json-tree/select-json-tree.component';
+import {
+  BehaviorSubject,
+  combineLatest,
+  map,
+  of,
+  startWith,
+  Subject,
+  takeUntil,
+} from 'rxjs';
 import {
   ConditionResolverItem,
   HttpStatusRangeCode,
@@ -29,10 +39,13 @@ import {
   PropertyValueCondition,
   TemplateMessageDto,
 } from '../../proxy/Integration';
-import { CoreService, DialogActionButton, ValueItem } from '../../service/core.service';
-import { LiveAnnouncer } from '@angular/cdk/a11y';
+import {
+  CoreService,
+  DialogActionButton,
+  ValueItem,
+} from '../../service/core.service';
 import { AddConditionComponent } from '../add-condition/add-condition.component';
-import { BehaviorSubject, combineLatest, map, of, startWith } from 'rxjs';
+import { SelectJsonTreeComponent } from '../select-json-tree/select-json-tree.component';
 
 @Component({
   selector: 'app-add-resolver',
@@ -50,9 +63,9 @@ import { BehaviorSubject, combineLatest, map, of, startWith } from 'rxjs';
     AddConditionComponent,
   ],
   templateUrl: './add-resolver.html',
-  styleUrl: './add-resolver.scss',
+  styleUrls: ['./add-resolver.scss'],
 })
-export class AddResolver implements OnInit {
+export class AddResolver implements OnInit, OnDestroy {
   @Input() conditionValue!: number;
   @Output() addResolver = new EventEmitter<ConditionResolverItem>();
 
@@ -107,6 +120,8 @@ export class AddResolver implements OnInit {
 
   announcer = inject(LiveAnnouncer);
 
+  private destroy$ = new Subject<void>();
+
   constructor(private fb: FormBuilder, private coreService: CoreService) {
     this.resolverForm = this.fb.group({
       statusItemList: [[''], Validators.required],
@@ -129,50 +144,63 @@ export class AddResolver implements OnInit {
 
     this.resolverForm
       .get('templateMessageItem')
-      ?.valueChanges.subscribe((value) => {
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe((value) => {
         this.templateMessage = value;
         this.templateMessageJson = JSON.parse(
           this.templateMessage.json ?? '{}'
         );
       });
 
-    this.resolverForm.get('values')?.valueChanges.subscribe(() => {
-      const expectedValues = this.buildExpectedValues().map((v) => ({
-        value: v.value,
-      }));
-      this.resolverForm.get('expectedValues')?.setValue(expectedValues, {
-        emitEvent: false,
+    this.resolverForm
+      .get('values')
+      ?.valueChanges.pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        const expectedValues = this.buildExpectedValues().map((v) => ({
+          value: v.value,
+        }));
+        this.resolverForm.get('expectedValues')?.setValue(expectedValues, {
+          emitEvent: false,
+        });
       });
-    });
   }
 
   ngOnInit(): void {
-    this.coreService.dataSubject.subscribe((data) => {
-      this.ConditionRelationshipTypes =
-        data.find((item) => item.name === 'ConditionRelationshipType')
-          ?.valueItems ?? [];
-      this.conditionOperationTypes =
-        data.find((item) => item.name === 'ConditionOperation')?.valueItems ??
-        [];
-    });
+    this.coreService.dataSubject
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((data) => {
+        this.ConditionRelationshipTypes =
+          data.find((item) => item.name === 'ConditionRelationshipType')
+            ?.valueItems ?? [];
+        this.conditionOperationTypes =
+          data.find((item) => item.name === 'ConditionOperation')?.valueItems ??
+          [];
+      });
 
     const channelId = this.coreService.getChannelId();
-    this.coreService.getDataList(channelId).subscribe((response) => {
-      this.templateMessageList = response.templateMessageList.items!;
-    });
+    this.coreService
+      .getDataList(channelId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((response) => {
+        this.templateMessageList = response.templateMessageList.items!;
+      });
 
     this.updateActions();
   }
 
   ngOnDestroy(): void {
     this.coreService.clearActions();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private updateActions() {
     const disabled$ = combineLatest([
       this.resolverForm.statusChanges.pipe(startWith(this.resolverForm.status)),
       this.openDialogState$,
-    ]).pipe(map(() => this.resolverForm.invalid || this.openAddConditionDialog));
+    ]).pipe(
+      map(() => this.resolverForm.invalid || this.openAddConditionDialog)
+    );
 
     const actions: DialogActionButton[] = [
       {

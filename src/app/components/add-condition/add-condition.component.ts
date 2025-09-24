@@ -1,12 +1,12 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
-import { AfterViewInit, ViewChild } from '@angular/core';
+import { AfterViewInit, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormsModule, NgForm, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { map, of, startWith } from 'rxjs';
+import { map, of, startWith, Subject, takeUntil } from 'rxjs';
 import { PropertyValueCondition } from '../../proxy/Integration';
 import {
   CoreService,
@@ -19,7 +19,7 @@ import { SelectJsonTreeComponent } from '../select-json-tree/select-json-tree.co
 @Component({
   selector: 'app-add-condition',
   templateUrl: './add-condition.component.html',
-  styleUrl: './add-condition.component.scss',
+  styleUrls: ['./add-condition.component.scss'],
   standalone: true,
   imports: [
     MatButtonModule,
@@ -31,7 +31,7 @@ import { SelectJsonTreeComponent } from '../select-json-tree/select-json-tree.co
     SelectJsonTreeComponent,
   ],
 })
-export class AddConditionComponent implements AfterViewInit {
+export class AddConditionComponent implements AfterViewInit, OnInit, OnDestroy {
   conditionOperationTypes: ValueItem[] = [];
   condition = new PropertyValueCondition();
 
@@ -42,15 +42,19 @@ export class AddConditionComponent implements AfterViewInit {
 
   @ViewChild('createTaskForm') createTaskForm!: NgForm;
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private coreService: CoreService,
     private helpService: HelpService
   ) {
-    this.coreService.dataSubject.subscribe((data) => {
-      this.conditionOperationTypes = data.find(
-        (item) => item.name === 'ConditionOperation'
-      )?.valueItems!;
-    });
+    this.coreService.dataSubject
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((data) => {
+        this.conditionOperationTypes = data.find(
+          (item) => item.name === 'ConditionOperation'
+        )?.valueItems!;
+      });
   }
 
   ngOnInit(): void {
@@ -109,5 +113,7 @@ export class AddConditionComponent implements AfterViewInit {
   }
   ngOnDestroy(): void {
     this.helpService.setActiveFieldTree('');
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
