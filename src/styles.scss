@@ -12,10 +12,16 @@ html {
         primary: mat.$azure-palette,
         tertiary: mat.$blue-palette,
       ),
-      typography: Roboto,
+      brand-family: IRANSans,
+      plain-family: Roboto,
       density: 0,
     )
   );
+}
+
+@font-face {
+  font-family: "IRANSans";
+  src: url("./assets/fonts/IRANSansWeb_Light.ttf") format("truetype");
 }
 
 body {
@@ -42,9 +48,13 @@ body {
 }
 body {
   margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
+  font-family: "IRANSans", sans-serif;
 }
 
 .w-full {
   width: 100%;
+}
+
+.mb-2 {
+  margin-bottom: 16px;
 }

@@ -28,18 +28,24 @@
       <div>
         نوع: <span>{{ convertType(item.type!) }}</span>
       </div>
+      @if (item.expectedIncomingHttpStatusRangeCode?.from) {
       <div>
         کد وضعیت ورودی از:
         <span>{{ item.expectedIncomingHttpStatusRangeCode?.from }}</span>
       </div>
+      }
+      @if (item.expectedIncomingHttpStatusRangeCode?.to) {
       <div>
         کد وضعیت ورودی تا:
         <span>{{ item.expectedIncomingHttpStatusRangeCode?.to }}</span>
       </div>
+      }
+      @if (item.outgoingHttpResponseStatus) {
       <div>
         کد وضعیت خروجی:
         <span>{{ item.outgoingHttpResponseStatus }}</span>
       </div>
+      }
 
       @switch (item.type) { @case (0) { } @case (1) {
       <div>
@@ -76,7 +82,7 @@
         مقادیر مورد انتظار:
         <ul class="expected-list">
           @for (expectValue of item.expectedValues; track $index) {
-          <li>{{ expectValue.value }}</li>
+          <li><b>{{ expectValue.value }}</b></li>
           }
         </ul>
       </div>

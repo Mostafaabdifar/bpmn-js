@@ -17,6 +17,8 @@ import {
   FormsModule,
   ReactiveFormsModule,
   Validators,
+  ValidatorFn,
+  AbstractControl,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipInputEvent, MatChipsModule } from '@angular/material/chips';
@@ -125,24 +127,27 @@ export class AddResolver implements OnInit, OnDestroy, OnChanges {
   private destroy$ = new Subject<void>();
 
   constructor(private fb: FormBuilder, private coreService: CoreService) {
-    this.resolverForm = this.fb.group({
-      statusItemList: [[''], Validators.required],
-      statusItem: [''],
-      statusName: ['', Validators.required],
-      statusRangeFrom: ['', Validators.required],
-      statusRangeTo: ['', Validators.required],
-      templateMessageItem: [''],
-      actions: [''],
-      conditionRelationship: [null],
-      description: [''],
-      property: [''],
-      priority: [''],
-      conditions: [''],
-      values: this.fb.array<string>([]),
-      expected: [false],
-      expectedValues: [''],
-      type: [this.conditionValue],
-    });
+    this.resolverForm = this.fb.group(
+      {
+        statusItemList: [[]],
+        statusItem: [''],
+        statusName: ['', Validators.required],
+        statusRangeFrom: [''],
+        statusRangeTo: [''],
+        templateMessageItem: [''],
+        actions: [''],
+        conditionRelationship: [null],
+        description: [''],
+        property: [''],
+        priority: [''],
+        conditions: [''],
+        values: this.fb.array<string>([]),
+        expected: [false],
+        expectedValues: [''],
+        type: [this.conditionValue],
+      },
+      { validators: [this.requireStatusOrRangeValidator()] }
+    );
 
     this.resolverForm
       .get('templateMessageItem')
@@ -165,6 +170,48 @@ export class AddResolver implements OnInit, OnDestroy, OnChanges {
           emitEvent: false,
         });
       });
+
+    // Mutually exclusive behavior between status list and range
+    const statusItemListControl = this.resolverForm.get('statusItemList');
+    const rangeFromControl = this.resolverForm.get('statusRangeFrom');
+    const rangeToControl = this.resolverForm.get('statusRangeTo');
+
+    statusItemListControl?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((list: number[] | null) => {
+        const hasList = Array.isArray(list) && list.length > 0;
+        if (hasList) {
+          // Disable and clear range
+          rangeFromControl?.reset('', { emitEvent: false });
+          rangeToControl?.reset('', { emitEvent: false });
+          rangeFromControl?.disable({ emitEvent: false });
+          rangeToControl?.disable({ emitEvent: false });
+        } else {
+          // Enable range if list empty and no range chosen yet
+          rangeFromControl?.enable({ emitEvent: false });
+          rangeToControl?.enable({ emitEvent: false });
+        }
+        this.resolverForm.updateValueAndValidity({ emitEvent: false });
+      });
+
+    const handleRangeChange = () => {
+      const hasRange = !!rangeFromControl?.value || !!rangeToControl?.value;
+      if (hasRange) {
+        // Disable and clear list
+        statusItemListControl?.reset([], { emitEvent: false });
+        statusItemListControl?.disable({ emitEvent: false });
+      } else {
+        statusItemListControl?.enable({ emitEvent: false });
+      }
+      this.resolverForm.updateValueAndValidity({ emitEvent: false });
+    };
+
+    rangeFromControl?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(handleRangeChange);
+    rangeToControl?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(handleRangeChange);
   }
 
   ngOnInit(): void {
@@ -238,6 +285,18 @@ export class AddResolver implements OnInit, OnDestroy, OnChanges {
       value.init({ value: control.value });
       return value;
     });
+  }
+
+  private requireStatusOrRangeValidator(): ValidatorFn {
+    return (control: AbstractControl) => {
+      const group = control as FormGroup;
+      const list: number[] = group.get('statusItemList')?.value ?? [];
+      const from = group.get('statusRangeFrom')?.value;
+      const to = group.get('statusRangeTo')?.value;
+      const hasList = Array.isArray(list) && list.length > 0;
+      const hasRange = !!from || !!to;
+      return hasList || hasRange ? null : { requireStatusOrRange: true };
+    };
   }
 
   get valuesArray(): FormArray {
