@@ -245,7 +245,7 @@ export class AddResolver implements OnInit, OnDestroy, OnChanges {
 
     const channelId = this.coreService.getChannelId();
     this.coreService
-      .getDataList(channelId)
+      .getDataList(channelId!)
       .pipe(takeUntil(this.destroy$))
       .subscribe((response) => {
         this.templateMessageList = response.templateMessageList.items!;

@@ -53,8 +53,7 @@ export class CoreService {
   private formSubject = new BehaviorSubject<FormData | null>(null);
   form$ = this.formSubject.asObservable();
 
-  // Central channel id holder (replace with dynamic source when available)
-  private channelId: string = '91eff4bb-805e-441a-83be-bfb85e17c11e';
+  private channelId!: string;
 
   private actionsSubject = new BehaviorSubject<DialogActionButton[]>([]);
   actions$ = this.actionsSubject.asObservable();
@@ -98,7 +97,7 @@ export class CoreService {
     this.dataListCache$ = null;
   }
 
-  // Form 
+  // Form
   setForm(form: FormGroup, type: string) {
     this.formSubject.next({ form, type });
   }
@@ -111,16 +110,21 @@ export class CoreService {
     this.formSubject.next(null);
   }
 
-  getChannelId(): string {
-    return this.channelId;
-  }
-
-  // Actions 
+  // Actions
   setActions(actions: DialogActionButton[]) {
     this.actionsSubject.next(actions ?? []);
   }
 
   clearActions() {
     this.actionsSubject.next([]);
+  }
+
+  // Channel
+  setChannelId(id: string) {
+    this.channelId = id;
+  }
+
+  getChannelId(): string | null {
+    return this.channelId;
   }
 }

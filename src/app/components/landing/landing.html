@@ -1,0 +1,32 @@
+<div class="container">
+  <div class="card">
+    <div class="action">
+      <button class="add-btn" matButton="elevated" (click)="openDialog()">
+        اضافه کردن کانال
+        <mat-icon>add</mat-icon>
+      </button>
+    </div>
+    <div class="content">
+      <mat-selection-list
+        role="list"
+        (selectionChange)="onSelectionChange($event)"
+      >
+        @for (item of channelList; track item.id) {
+        <mat-list-option [value]="item.id">{{ item.name }}</mat-list-option> }
+      </mat-selection-list>
+    </div>
+  </div>
+</div>
+
+<ng-template #dialogTemplate let-dialogRef>
+  <mat-dialog-content>
+    <mat-form-field class="w-full">
+      <mat-label>اسم کانال</mat-label>
+      <input matInput [(ngModel)]="channelName" />
+    </mat-form-field>
+  </mat-dialog-content>
+  <mat-dialog-actions>
+    <button mat-button mat-dialog-close>بستن</button>
+    <button mat-button (click)="createChannel()">ایجاد</button>
+  </mat-dialog-actions>
+</ng-template>

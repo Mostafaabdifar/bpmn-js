@@ -85,7 +85,7 @@ export class Dialog implements OnInit {
     private cdr: ChangeDetectorRef
   ) {
     this.FormComponent = this.formMap[this.data.typeAction] || null;
-    this.channelId = this.coreService.getChannelId();
+    this.channelId = this.coreService.getChannelId()!;
     this.actions$ = this.coreService.actions$.pipe(delay(0));
   }
 
