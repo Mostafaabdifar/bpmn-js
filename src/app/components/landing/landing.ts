@@ -7,6 +7,7 @@ import {
   MatDialogClose,
   MatDialogContent,
   MatDialogRef,
+  MatDialogTitle,
 } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -19,6 +20,7 @@ import {
 } from '../../proxy/Integration';
 import { Router } from '@angular/router';
 import { CoreService } from '../../service/core.service';
+import { C } from '@angular/cdk/keycodes';
 
 @Component({
   selector: 'app-landing',
@@ -32,6 +34,7 @@ import { CoreService } from '../../service/core.service';
     MatFormFieldModule,
     MatInputModule,
     MatDialogClose,
+    MatDialogTitle,
   ],
   templateUrl: './landing.html',
   styleUrl: './landing.scss',
@@ -42,6 +45,7 @@ export class Landing implements OnInit {
   channelList: ChannelDto[] = [];
   channelName: string = '';
   channelCommand = new CreateChannelCommand();
+  deleteChannelCommand = new CreateChannelCommand();
   constructor(
     private channelClient: ChannelClient,
     private dialog: MatDialog,
@@ -87,10 +91,11 @@ export class Landing implements OnInit {
     });
   }
 
-  onSelectionChange(channel: any) {
-    const selectedIds = channel.source.selectedOptions.selected.map(
-      (s: any) => s.value
-    )[0];
-    this.router.navigate(['/bpmn', selectedIds]);
+  openBpmn(channel: ChannelDto) {
+    this.router.navigate(['/bpmn', channel.id]);
+  }
+
+  onDeleteAction(channel: ChannelDto) {
+    console.log('Delete', channel);
   }
 }

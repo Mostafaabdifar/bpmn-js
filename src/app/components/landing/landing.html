@@ -2,23 +2,32 @@
   <div class="card">
     <div class="action">
       <button class="add-btn" matButton="elevated" (click)="openDialog()">
-        اضافه کردن کانال
+        ایجاد کانال
         <mat-icon>add</mat-icon>
       </button>
     </div>
     <div class="content">
-      <mat-selection-list
-        role="list"
-        (selectionChange)="onSelectionChange($event)"
-      >
+      <mat-list role="list">
         @for (item of channelList; track item.id) {
-        <mat-list-option [value]="item.id">{{ item.name }}</mat-list-option> }
-      </mat-selection-list>
+        <div class="list-item" (click)="openBpmn(item)">
+          <span>
+            {{ item.name }}
+          </span>
+          <button
+            matMiniFab
+            (click)="$event.stopPropagation(); onDeleteAction(item)"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+        }
+      </mat-list>
     </div>
   </div>
 </div>
 
 <ng-template #dialogTemplate let-dialogRef>
+  <h2 mat-dialog-title dir="rtl">ایجاد کانال</h2>
   <mat-dialog-content>
     <mat-form-field class="w-full">
       <mat-label>اسم کانال</mat-label>
@@ -27,6 +36,8 @@
   </mat-dialog-content>
   <mat-dialog-actions>
     <button mat-button mat-dialog-close>بستن</button>
-    <button mat-button (click)="createChannel()">ایجاد</button>
+    <button mat-button (click)="createChannel()" [disabled]="!channelName">
+      ایجاد
+    </button>
   </mat-dialog-actions>
 </ng-template>
