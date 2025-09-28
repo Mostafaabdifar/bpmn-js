@@ -26,7 +26,7 @@ import CustomContextPad from './custom/customContextPad';
 import CustomPalette from './custom/customPalette';
 import CustomRenderer from './custom/customRenderer';
 import { MatButton } from '@angular/material/button';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CoreService } from '../../service/core.service';
 
 const DEFAULT_DIAGRAM = `<?xml version="1.0" encoding="UTF-8"?>
@@ -71,7 +71,8 @@ export class Bpmn implements AfterViewInit, OnInit {
     private DialogService: MatDialog,
     private channelclient: ChannelClient,
     private activatedRoute: ActivatedRoute,
-    private coreService: CoreService
+    private coreService: CoreService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -237,6 +238,10 @@ export class Bpmn implements AfterViewInit, OnInit {
           this.diagramModel.shapes[element.id]
         );
       });
+  }
+
+  backToMain() {
+    this.router.navigate(['/channel-list']);
   }
 
   private getTypeAction(element: any, type: string): string {
