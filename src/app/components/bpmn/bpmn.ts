@@ -18,6 +18,7 @@ import Canvas from 'diagram-js/lib/core/Canvas';
 import EventBus from 'diagram-js/lib/core/EventBus';
 import {
   ChannelClient,
+  ChannelPathItem,
   SetNextChannelPathCommand,
 } from '../../proxy/Integration';
 import { Dialog } from '../dialog/dialog';
@@ -58,7 +59,7 @@ export class Bpmn implements AfterViewInit, OnInit {
   selectedShape: Shape | undefined;
   setNextChannelPathCommand = new SetNextChannelPathCommand();
   channelId: string = '';
-
+  channePaths: ChannelPathItem[] = [];
   diagramModel: {
     shapes: Record<string, any>;
     connections: Record<string, any>;
@@ -95,6 +96,7 @@ export class Bpmn implements AfterViewInit, OnInit {
   ngOnInit(): void {
     this.activatedRoute.data.subscribe((data) => {
       this.coreService.setChannelId(data['data'].id);
+      this.channePaths = data['data'].paths;
       console.log(data['data']);
     });
   }
