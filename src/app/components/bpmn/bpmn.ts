@@ -1,4 +1,10 @@
-import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import {
   BpmnPropertiesPanelModule,
@@ -20,6 +26,8 @@ import CustomContextPad from './custom/customContextPad';
 import CustomPalette from './custom/customPalette';
 import CustomRenderer from './custom/customRenderer';
 import { MatButton } from '@angular/material/button';
+import { ActivatedRoute } from '@angular/router';
+import { CoreService } from '../../service/core.service';
 
 const DEFAULT_DIAGRAM = `<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -42,14 +50,14 @@ const DEFAULT_DIAGRAM = `<?xml version="1.0" encoding="UTF-8"?>
   imports: [MatButton],
   standalone: true,
 })
-export class Bpmn implements AfterViewInit {
+export class Bpmn implements AfterViewInit, OnInit {
   @ViewChild('canvas', { static: true }) private canvasRef!: ElementRef;
   @ViewChild('properties', { static: true }) private propertiesRef!: ElementRef;
 
   private bpmnModeler!: BpmnModeler;
   selectedShape: Shape | undefined;
   setNextChannelPathCommand = new SetNextChannelPathCommand();
-  channelId: string = '91eff4bb-805e-441a-83be-bfb85e17c11e';
+  channelId: string = '';
 
   diagramModel: {
     shapes: Record<string, any>;
@@ -61,8 +69,17 @@ export class Bpmn implements AfterViewInit {
 
   constructor(
     private DialogService: MatDialog,
-    private channelclient: ChannelClient
+    private channelclient: ChannelClient,
+    private activatedRoute: ActivatedRoute,
+    private coreService: CoreService
   ) {}
+
+  ngOnInit(): void {
+    this.activatedRoute.data.subscribe((data) => {
+      this.coreService.setChannelId(data['data'].id);
+      console.log(data['data']);
+    });
+  }
 
   ngAfterViewInit(): void {
     this.initializeModeler();
@@ -135,7 +152,7 @@ export class Bpmn implements AfterViewInit {
 
         const commandPayload = {
           commandId: null,
-          channelId: this.channelId,
+          channelId: this.coreService.getChannelId(),
           channelPathId: this.diagramModel.shapes[sourceId!]?.pathId ?? null,
           resolverId: null,
           nextChannelPathId:

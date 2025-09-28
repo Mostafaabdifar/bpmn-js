@@ -18,7 +18,7 @@ import {
   ChannelDto,
   CreateChannelCommand,
 } from '../../proxy/Integration';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CoreService } from '../../service/core.service';
 import { C } from '@angular/cdk/keycodes';
 
@@ -50,7 +50,8 @@ export class Landing implements OnInit {
     private channelClient: ChannelClient,
     private dialog: MatDialog,
     private router: Router,
-    private coreService: CoreService
+    private coreService: CoreService,
+    private activatedRoute: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
@@ -58,13 +59,8 @@ export class Landing implements OnInit {
   }
 
   getList() {
-    this.channelClient.getList(undefined, undefined, undefined).subscribe({
-      next: (res) => {
-        this.channelList = res.items!;
-      },
-      error: (err) => {
-        console.log(err);
-      },
+    this.activatedRoute.data.subscribe((data) => {
+      this.channelList = data['data'].items;
     });
   }
 
@@ -78,7 +74,6 @@ export class Landing implements OnInit {
       next: (res) => {
         if (res?.id) {
           const id = res.id;
-          this.coreService.setChannelId(id);
           this.router.navigate(['/bpmn', id]);
         }
       },
