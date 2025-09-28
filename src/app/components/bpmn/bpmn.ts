@@ -30,20 +30,6 @@ import { MatButton } from '@angular/material/button';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CoreService } from '../../service/core.service';
 
-const DEFAULT_DIAGRAM = `<?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
-                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
-                  xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
-                  xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
-                  id="Definitions_1"
-                  targetNamespace="http://bpmn.io/schema/bpmn">
-  <bpmn:process id="Process_1" isExecutable="false"/>
-  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1"/>
-  </bpmndi:BPMNDiagram>
-</bpmn:definitions>`;
-
 @Component({
   selector: 'app-bpmm',
   templateUrl: './bpmn.html',
@@ -60,6 +46,19 @@ export class Bpmn implements AfterViewInit, OnInit {
   setNextChannelPathCommand = new SetNextChannelPathCommand();
   channelId: string = '';
   channePaths: ChannelPathItem[] = [];
+  diagramViewModel: string = `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_1"
+                  targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Process_1" isExecutable="false"/>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1"/>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>`;
   diagramModel: {
     shapes: Record<string, any>;
     connections: Record<string, any>;
@@ -87,6 +86,7 @@ export class Bpmn implements AfterViewInit, OnInit {
     this.activatedRoute.data.subscribe((data) => {
       this.coreService.setChannelId(data['data'].id);
       this.channePaths = data['data'].paths;
+      // this.diagramViewModel = ``;
       console.log(data['data']);
     });
   }
@@ -116,7 +116,7 @@ export class Bpmn implements AfterViewInit, OnInit {
       },
     });
 
-    this.bpmnModeler.importXML(DEFAULT_DIAGRAM).then(() => {
+    this.bpmnModeler.importXML(this.diagramViewModel).then(() => {
       const canvas = this.bpmnModeler.get<Canvas>('canvas');
       canvas.zoom('fit-viewport');
 
@@ -126,6 +126,10 @@ export class Bpmn implements AfterViewInit, OnInit {
 
   private registerEvents(): void {
     const eventBus = this.bpmnModeler.get<EventBus>('eventBus');
+
+    eventBus.on('element.dblclick', ({ element }: { element: Shape }) => {
+      console.log(element);
+    });
 
     eventBus.on('shape.added', ({ element }: { element: Shape }) => {
       console.log(element);
@@ -232,6 +236,11 @@ export class Bpmn implements AfterViewInit, OnInit {
         }
 
         modeling.updateLabel(element, result.valueForm['name']);
+
+        modeling.updateProperties(element, {
+          name: result.valueForm['name'],
+          pathId: result.pathId,
+        });
 
         this.diagramModel.shapes[element.id] = {
           id: element.id,
