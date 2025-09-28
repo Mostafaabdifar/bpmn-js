@@ -14,7 +14,7 @@
   ></div>
 </div>
 
-<button style="margin: 16px" matButton="filled" (click)="saveDiagram()">
+<button style="margin: 16px" matButton="filled" (click)="saveDiagram()" [disabled]="!canSave">
   ذخیره دیاگرام
 </button>
 
