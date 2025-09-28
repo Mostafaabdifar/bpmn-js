@@ -77,19 +77,9 @@ export class Bpmn implements AfterViewInit, OnInit {
   ) {}
 
   get canSave(): boolean {
-    if (!this.bpmnModeler) return false;
-
-    try {
-      const elementRegistry: any = this.bpmnModeler.get('elementRegistry');
-      const flows =
-        elementRegistry?.filter?.(
-          (el: any) => el?.type === 'bpmn:SequenceFlow'
-        ) ?? [];
-      if (flows.length > 0) return true;
-    } catch (_) {}
-
-    return Object.values(this.diagramModel.connections).some(
-      (c: any) => c?.type === 'SequenceFlow'
+    return (
+      !!this.diagramModel?.shapes &&
+      Object.keys(this.diagramModel.shapes).length > 0
     );
   }
 
