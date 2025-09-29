@@ -29,16 +29,29 @@
 
 <ng-template #dialogTemplate let-dialogRef>
   <h2 mat-dialog-title dir="rtl">ایجاد کانال</h2>
-  <mat-dialog-content>
+  <mat-dialog-content dir="rtl">
     <mat-form-field class="w-full">
       <mat-label>اسم کانال</mat-label>
       <input matInput [(ngModel)]="channelName" />
     </mat-form-field>
   </mat-dialog-content>
-  <mat-dialog-actions>
+  <mat-dialog-actions align="center">
     <button mat-button mat-dialog-close>بستن</button>
     <button mat-button (click)="createChannel()" [disabled]="!channelName">
       ایجاد
     </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<ng-template #removeTemplate let-dialogRef>
+  <h2 mat-dialog-title dir="rtl">هشدار</h2>
+  <mat-dialog-content dir="rtl">
+    <p style="padding-top: 10px; padding-bottom: 10px">
+      آیا از حذف کانال مطمئن هستید؟
+    </p>
+  </mat-dialog-content>
+  <mat-dialog-actions align="center">
+    <button mat-button mat-dialog-close>خیر</button>
+    <button mat-button matButton="filled" (click)="deleteChannel()">بله</button>
   </mat-dialog-actions>
 </ng-template>
