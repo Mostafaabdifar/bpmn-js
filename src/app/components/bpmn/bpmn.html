@@ -14,8 +14,13 @@
   ></div>
 </div>
 
-<button style="margin: 16px" matButton="filled" (click)="saveDiagram()" [disabled]="!canSave">
-  ذخیره دیاگرام
+<button
+  style="margin: 16px"
+  matButton="filled"
+  (click)="saveDiagram()"
+  [disabled]="!editMode && !canSave"
+>
+  @if(editMode){ بروزرسانی دیاگرام } @else { ذخیره دیاگرام }
 </button>
 
 <button style="margin: 16px" matButton="elevated" (click)="backToMain()">

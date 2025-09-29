@@ -20,6 +20,7 @@ import {
   ChannelClient,
   ChannelPathItem,
   SetNextChannelPathCommand,
+  UpdateChannelCommand,
 } from '../../proxy/Integration';
 import { Dialog } from '../dialog/dialog';
 import { DirectEditing, Modeling } from './custom/bpmn-model';
@@ -44,7 +45,9 @@ export class Bpmn implements AfterViewInit, OnInit {
   private bpmnModeler!: BpmnModeler;
   selectedShape: Shape | undefined;
   setNextChannelPathCommand = new SetNextChannelPathCommand();
+  updateChannelCommand = new UpdateChannelCommand();
   channelId: string = '';
+  editMode: boolean = false;
   channePaths: ChannelPathItem[] = [];
   diagramViewModel: string = `<?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -86,6 +89,7 @@ export class Bpmn implements AfterViewInit, OnInit {
     this.activatedRoute.data.subscribe((data) => {
       this.coreService.setChannelId(data['data'].id);
       this.channePaths = data['data'].paths;
+      if (this.channePaths.length > 0) this.editMode = true;
       // this.diagramViewModel = ``;
       console.log(data['data']);
     });
@@ -273,11 +277,20 @@ export class Bpmn implements AfterViewInit, OnInit {
   }
 
   async saveDiagram(): Promise<void> {
-    try {
-      const { xml } = await this.bpmnModeler.saveXML({ format: true });
-      console.log('BPMN XML:', xml);
-    } catch (err) {
-      console.error('Error saving BPMN diagram:', err);
+    console.log(this.editMode);
+    if (this.editMode) {
+      this.channelclient.update(this.updateChannelCommand).subscribe({
+        next: () => {},
+        error: () => {},
+        complete() {},
+      });
+    } else {
+      try {
+        const { xml } = await this.bpmnModeler.saveXML({ format: true });
+        console.log('BPMN XML:', xml);
+      } catch (err) {
+        console.error('Error saving BPMN diagram:', err);
+      }
     }
   }
 }
