@@ -47,7 +47,11 @@
   <h2 mat-dialog-title dir="rtl">هشدار</h2>
   <mat-dialog-content dir="rtl">
     <p style="padding-top: 10px; padding-bottom: 10px">
-      آیا از حذف کانال مطمئن هستید؟
+      آیا از حذف کانال
+      <b>
+        {{ selectedChannel.name }}
+      </b>
+      مطمئن هستید؟
     </p>
   </mat-dialog-content>
   <mat-dialog-actions align="center">
