@@ -95,7 +95,7 @@ export class Landing implements OnInit {
     this.channelClient.delete(this.deleteChannelCommand).subscribe({
       next: (res) => {
         console.log(res);
-        this.getList();
+        this.getChannelList();
       },
       error: (err) => {
         console.log(err);
@@ -103,6 +103,18 @@ export class Landing implements OnInit {
       complete: () => {
         this.currentDialogRef?.close();
       },
+    });
+  }
+
+  getChannelList() {
+    this.channelClient.getList(undefined, undefined, undefined).subscribe({
+      next: (res) => {
+        this.channelList = res.items!;
+      },
+      error: (err) => {
+        console.log(err);
+      },
+      complete: () => {},
     });
   }
 
