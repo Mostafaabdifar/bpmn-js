@@ -14,15 +14,21 @@
   ></div>
 </div>
 
-<button
-  style="margin: 16px"
-  matButton="filled"
-  (click)="saveDiagram()"
-  [disabled]="!editMode && !canSave"
->
-  @if(editMode){ بروزرسانی دیاگرام } @else { ذخیره دیاگرام }
-</button>
+<div class="action">
+  <button
+    style="margin: 16px"
+    matButton="filled"
+    (click)="saveDiagram()"
+    [disabled]="!editMode && !canSave"
+  >
+    @if(editMode){ بروزرسانی دیاگرام } @else { ذخیره دیاگرام }
+  </button>
 
-<button style="margin: 16px" matButton="elevated" (click)="backToMain()">
-  بارگشت به صفحه اصلی
-</button>
+  <button style="margin: 16px" matButton="tonal" (click)="backToMain()">
+    بارگشت به صفحه اصلی
+  </button>
+
+  <button style="margin: 16px" matMiniFab (click)="exportSvg()">
+    <mat-icon>download</mat-icon>
+  </button>
+</div>

@@ -11,3 +11,11 @@
     color: #52c41a;
   }
 }
+
+.action {
+  display: flex;
+  align-items: center;
+  button {
+    margin: 16px;
+  }
+}

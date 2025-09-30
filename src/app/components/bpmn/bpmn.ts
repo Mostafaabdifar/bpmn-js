@@ -27,15 +27,16 @@ import { DirectEditing, Modeling } from './custom/bpmn-model';
 import CustomContextPad from './custom/customContextPad';
 import CustomPalette from './custom/customPalette';
 import CustomRenderer from './custom/customRenderer';
-import { MatButton } from '@angular/material/button';
+import { MatButton, MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CoreService } from '../../service/core.service';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-bpmm',
   templateUrl: './bpmn.html',
   styleUrl: './bpmn.scss',
-  imports: [MatButton],
+  imports: [MatButtonModule, MatIconModule],
   standalone: true,
 })
 export class Bpmn implements AfterViewInit, OnInit {
@@ -125,6 +126,11 @@ export class Bpmn implements AfterViewInit, OnInit {
       canvas.zoom('fit-viewport');
 
       this.registerEvents();
+
+      this.bpmnModeler.on('saveSVG.start', () => {
+        console.log('fsdfsd');
+        // do something before export
+      });
     });
   }
 
@@ -292,5 +298,28 @@ export class Bpmn implements AfterViewInit, OnInit {
         console.error('Error saving BPMN diagram:', err);
       }
     }
+  }
+
+  async exportSvg(): Promise<void> {
+    try {
+      const { svg } = await this.bpmnModeler.saveSVG();
+      this.downloadSVG(svg, 'diagram.svg');
+    } catch (err) {
+      console.error('Error exporting BPMN diagram to SVG:', err);
+    }
+  }
+
+  private downloadSVG(svgString: string, filename: string) {
+    const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+
+    a.remove();
+    URL.revokeObjectURL(url);
   }
 }
