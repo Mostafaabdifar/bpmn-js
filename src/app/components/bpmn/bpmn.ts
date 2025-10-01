@@ -126,11 +126,6 @@ export class Bpmn implements AfterViewInit, OnInit {
       canvas.zoom('fit-viewport');
 
       this.registerEvents();
-
-      this.bpmnModeler.on('saveSVG.start', () => {
-        console.log('fsdfsd');
-        // do something before export
-      });
     });
   }
 
