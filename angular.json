@@ -25,13 +25,18 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/assets",
+                "output": "assets"
               }
             ],
             "styles": [
               "src/styles.scss",
-              "node_modules/bpmn-js/dist/assets/diagram-js.css",
-              "node_modules/bpmn-js/dist/assets/bpmn-js.css",
-              "node_modules/bpmn-js/dist/assets/bpmn-font/css/bpmn.css",
+              "src/assets/bpmn-font/css/diagram-js.css",
+              "src/assets/bpmn-font/css/bpmn-js.css",
+              "src/assets/bpmn-font/css/bpmn-embedded.css",
               "node_modules/bpmn-js-color-picker/colors/color-picker.css",
               "src/assets/properties-panel.css"
             ]
@@ -41,8 +46,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "3MB",
+                  "maximumError": "5MB"
                 },
                 {
                   "type": "anyComponentStyle",

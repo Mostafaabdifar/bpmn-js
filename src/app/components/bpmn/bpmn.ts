@@ -11,7 +11,6 @@ import {
   BpmnPropertiesProviderModule,
 } from 'bpmn-js-properties-panel';
 import { Connection, Shape } from 'bpmn-js/lib/model/Types';
-import 'camunda-bpmn-js/dist/assets/camunda-platform-modeler.css';
 import BpmnModeler from 'camunda-bpmn-js/lib/base/Modeler';
 import * as camundaModdleDescriptor from 'camunda-bpmn-moddle/resources/camunda.json';
 import Canvas from 'diagram-js/lib/core/Canvas';
