@@ -189,7 +189,9 @@ export class AddResolver implements OnInit, OnDestroy, OnChanges {
           rangeToControl?.reset('', { emitEvent: false });
           rangeFromControl?.disable({ emitEvent: false });
           rangeToControl?.disable({ emitEvent: false });
-          this.resolverForm.get('statusMode')?.setValue('list', { emitEvent: false });
+          this.resolverForm
+            .get('statusMode')
+            ?.setValue('list', { emitEvent: false });
         } else {
           // Enable range if list empty and no range chosen yet
           rangeFromControl?.enable({ emitEvent: false });
@@ -204,7 +206,9 @@ export class AddResolver implements OnInit, OnDestroy, OnChanges {
         // Disable and clear list
         statusItemListControl?.reset([], { emitEvent: false });
         statusItemListControl?.disable({ emitEvent: false });
-        this.resolverForm.get('statusMode')?.setValue('range', { emitEvent: false });
+        this.resolverForm
+          .get('statusMode')
+          ?.setValue('range', { emitEvent: false });
       } else {
         statusItemListControl?.enable({ emitEvent: false });
       }
@@ -218,7 +222,6 @@ export class AddResolver implements OnInit, OnDestroy, OnChanges {
       .pipe(takeUntil(this.destroy$))
       .subscribe(handleRangeChange);
 
-    // React to explicit mode change from radio buttons
     this.resolverForm
       .get('statusMode')
       ?.valueChanges.pipe(takeUntil(this.destroy$))
@@ -255,9 +258,16 @@ export class AddResolver implements OnInit, OnDestroy, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['conditionValue'] && changes['conditionValue'].currentValue != null) {
-      this.resolverForm?.get('type')?.setValue(changes['conditionValue'].currentValue);
-      this.resolverForm?.get('type')?.updateValueAndValidity({ emitEvent: true });
+    if (
+      changes['conditionValue'] &&
+      changes['conditionValue'].currentValue != null
+    ) {
+      this.resolverForm
+        ?.get('type')
+        ?.setValue(changes['conditionValue'].currentValue);
+      this.resolverForm
+        ?.get('type')
+        ?.updateValueAndValidity({ emitEvent: true });
     }
   }
 
@@ -316,7 +326,7 @@ export class AddResolver implements OnInit, OnDestroy, OnChanges {
     };
   }
 
-  // Allow user to switch back to list selection explicitly
+  // Allow user to switch back 
   switchToList(): void {
     const statusItemListControl = this.resolverForm.get('statusItemList');
     const rangeFromControl = this.resolverForm.get('statusRangeFrom');
@@ -345,7 +355,7 @@ export class AddResolver implements OnInit, OnDestroy, OnChanges {
 
     rangeFromControl?.enable({ emitEvent: false });
     rangeToControl?.enable({ emitEvent: false });
-    // clear previous range to force fresh selection
+    // clear previous range 
     rangeFromControl?.reset('', { emitEvent: false });
     rangeToControl?.reset('', { emitEvent: false });
 
@@ -404,11 +414,11 @@ export class AddResolver implements OnInit, OnDestroy, OnChanges {
     Object.assign(this.resolver, {
       conditionRelationship: get('conditionRelationship'),
       type: get('type'),
-      actions: get('actions'),
+      actions: get('actions') || [],
       conditions: this.conditions,
       expected: get('expected'),
       expectedIncomingHttpResponseStatuses: get('statusItemList'),
-      expectedValues: get('expectedValues'),
+      expectedValues: get('expectedValues') || [],
       outgoingHttpResponseStatus: get('statusItem'),
       priority: get('priority'),
       property: get('property'),
@@ -418,9 +428,9 @@ export class AddResolver implements OnInit, OnDestroy, OnChanges {
     this.resolver.expectedIncomingHttpStatusRangeCode ??=
       new HttpStatusRangeCode();
     this.resolver.expectedIncomingHttpStatusRangeCode.to =
-      get('statusRangeTo') ?? undefined;
+      get('statusRangeTo') || 0;
     this.resolver.expectedIncomingHttpStatusRangeCode.from =
-      get('statusRangeFrom') ?? undefined;
+      get('statusRangeFrom') || 0;
 
     this.addResolver.emit(this.resolver);
   }

@@ -16,6 +16,15 @@
       }
     </mat-select>
   </mat-form-field>
+
+  <mat-form-field class="w-full">
+    <mat-label>توضیحات</mat-label>
+    <textarea
+      matInput
+      formControlName="description"
+      placeholder="توضیحات"
+    ></textarea>
+  </mat-form-field>
 </form>
 @if (resolvers.length > 0) {
 <div class="resolver-list">

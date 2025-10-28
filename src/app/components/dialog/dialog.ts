@@ -150,7 +150,7 @@ export class Dialog implements OnInit {
           channelId: this.channelId,
           beforeChannelPathId: null,
           commandId: null,
-          actions: null,
+          actions: get('actions') || [],
           resolvers: get('resolvers'),
         },
         attach: this.attachCondition,
@@ -166,7 +166,7 @@ export class Dialog implements OnInit {
           channelId: this.channelId,
           beforeChannelPathId: null,
           commandId: null,
-          actions: null,
+          actions: get('actions'),
         },
         attach: this.attachComplete,
         service: this.channelClient.attachPathCompleteBased.bind(
@@ -181,7 +181,7 @@ export class Dialog implements OnInit {
           channelId: this.channelId,
           beforeChannelPathId: null,
           commandId: null,
-          actions: null,
+          actions: get('actions'),
         },
         attach: this.attachMapper,
         service: this.channelClient.attachPathMapperBased.bind(
@@ -196,7 +196,7 @@ export class Dialog implements OnInit {
           channelId: this.channelId,
           beforeChannelPathId: null,
           commandId: null,
-          actions: null,
+          actions: get('actions'),
         },
         attach: this.attachComplete,
         service: this.channelClient.attachPathCompleteBased.bind(

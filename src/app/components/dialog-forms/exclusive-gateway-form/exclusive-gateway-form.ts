@@ -46,6 +46,7 @@ export class ExclusiveGatewayForm {
       name: ['', Validators.required],
       resolvers: [[], Validators.required],
       conditionResolverType: [''],
+      description:['']
     });
 
     this.coreService.setForm(this.conditionForm, 'ExclusiveGateway');

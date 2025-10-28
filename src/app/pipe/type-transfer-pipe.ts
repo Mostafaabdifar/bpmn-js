@@ -9,8 +9,8 @@ export class TypeTransferPipe implements PipeTransform {
     EndEvent: 'مسیر نهایی',
     CustomEndEvent: 'مسیر خطا',
     ExclusiveGateway: 'مسیر شرطی',
-    Task: 'مسیر نگاشت',
-    CustomTask: 'فراخوانی API',
+    CustomTask: 'مسیر نگاشت',
+    Task: 'فراخوانی API',
   };
 
   transform(value: string): string {
